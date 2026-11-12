@@ -1,0 +1,510 @@
+<!doctype html>
+<!-- Web style: Paper Atelier (paper-atelier) — decided in ../DESIGN.md. Static page, no JavaScript, no third-party requests. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fox &amp; Hens</title>
+<meta name="description" content="A free farmyard card game you play in your browser. No ads, no login, and it keeps working offline once it has loaded.">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'none'; connect-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cpath%20d='M16%203C9%203%205%2014%205%2020a11%2011%200%200%200%2022%200C27%2014%2023%203%2016%203z'%20fill='%23E2B23A'%20stroke='%2321201f'%20stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preload" href="assets/fonts/fraunces-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/atkinson-400.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Fraunces";src:url("assets/fonts/fraunces-600.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:"Atkinson Hyperlegible Next";src:url("assets/fonts/atkinson-400.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Atkinson Hyperlegible Next";src:url("assets/fonts/atkinson-700.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap}
+:root{
+  /* game tokens (docs/UX-SPEC.md) */
+  --accent:#933323; --on-accent:#fbf6ea; --gain:#2e6b3a; --danger:#3a2f4a; --gold:#e2b23a; --gold-text:#7a5a0c;
+  /* paper tokens (per sheet below) */
+  --paper:#f6f0e4; --ink:#21201f; --ink-2:#57534f; --link:#4a2f1d; --edge:#fff; --shade:24,22,20; --pen:#2b2622;
+  --serif:"Fraunces","Iowan Old Style",Georgia,serif;
+  --sans:"Atkinson Hyperlegible Next","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --gutter:clamp(16px,4vw,48px);
+  --lift:cubic-bezier(.25,.8,.3,1);
+  --tile:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .3 0 0 0 0 .25 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  --torn:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='40'%3E%3Cpath d='M0,40 L0,13.7 L6,16.0 L11,15.7 L17,13.7 L23,13.5 L29,15.4 L31,15.1 L34,12.4 L42,13.3 L48,16.4 L53,17.4 L59,18.3 L65,15.2 L71,12.4 L73,10.5 L76,11.1 L81,10.0 L87,12.2 L93,10.5 L97,10.5 L105,7.8 L113,7.0 L119,10.2 L121,11.5 L125,13.2 L131,11.8 L133,12.2 L135,11.6 L139,10.8 L141,13.1 L143,11.2 L145,11.0 L153,10.4 L155,10.8 L158,12.6 L162,11.5 L166,10.5 L171,12.1 L173,9.8 L181,7.2 L183,7.0 L188,7.0 L194,7.0 L200,7.0 L208,8.7 L213,9.6 L215,9.0 L218,7.0 L224,7.0 L226,7.0 L231,10.2 L237,11.1 L239,8.2 L242,7.0 L246,7.0 L252,7.0 L256,7.0 L258,7.0 L264,7.9 L266,8.5 L270,9.3 L273,12.2 L278,14.4 L281,16.7 L284,17.5 L288,20.1 L294,18.5 L297,16.4 L305,19.2 L308,20.4 L313,22.0 L319,19.3 L321,16.8 L323,16.8 L327,15.2 L335,14.5 L340,16.5 L346,16.5 L352,14.4 L360,17.5 L363,15.7 L369,16.7 L375,17.4 L379,15.6 L382,17.2 L384,15.7 L389,14.1 L391,12.0 L395,12.2 L398,9.6 L401,12.1 L405,13.1 L413,13.3 L416,13.9 L418,13.7 L422,15.0 L424,11.9 L432,9.2 L434,10.7 L438,8.3 L440,7.0 L446,7.0 L448,9.6 L456,11.1 L459,13.0 L463,12.0 L471,11.8 L473,14.2 L478,17.1 L480,19.4 L486,16.3 L494,15.5 L500,12.4 L502,9.7 L510,7.3 L514,9.7 L522,8.6 L530,9.8 L535,9.5 L541,7.0 L547,7.0 L553,7.0 L555,7.0 L563,7.0 L569,8.0 L574,7.0 L576,7.0 L579,8.1 L582,8.3 L586,9.3 L591,9.3 L594,8.2 L600,13.7 L600,40 Z'/%3E%3C/svg%3E");
+  /* hand-drawn rule: warm brown ink on light papers (red is kept for the one call to action) */
+  --rule:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 16' preserveAspectRatio='none'%3E%3Cpath d='M2,9 Q13,9 23,8 Q38,10 48,7 Q56,12 66,8 Q77,14 87,9 Q105,9 115,10 Q125,10 135,10 Q149,11 159,10 Q168,12 178,9 Q190,4 200,10 Q213,11 223,11 Q240,13 250,9 Q267,8 277,11 Q296,5 298,8' fill='none' stroke='%236b4a2e' stroke-width='2.6' stroke-linecap='round' opacity='.9'/%3E%3C/svg%3E");
+  --rule-dark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 16' preserveAspectRatio='none'%3E%3Cpath d='M2,9 Q13,9 23,8 Q38,10 48,7 Q56,12 66,8 Q77,14 87,9 Q105,9 115,10 Q125,10 135,10 Q149,11 159,10 Q168,12 178,9 Q190,4 200,10 Q213,11 223,11 Q240,13 250,9 Q267,8 277,11 Q296,5 298,8' fill='none' stroke='%233a2414' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  --rule-gold:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 16' preserveAspectRatio='none'%3E%3Cpath d='M2,9 Q13,9 23,8 Q38,10 48,7 Q56,12 66,8 Q77,14 87,9 Q105,9 115,10 Q125,10 135,10 Q149,11 159,10 Q168,12 178,9 Q190,4 200,10 Q213,11 223,11 Q240,13 250,9 Q267,8 277,11 Q296,5 298,8' fill='none' stroke='%23f0b46a' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--paper) var(--tile);color:var(--ink);font:400 18px/1.6 var(--sans);letter-spacing:.04em;
+  font-feature-settings:"calt";text-rendering:optimizeLegibility;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;min-height:100vh;overflow-x:hidden;background:var(--paper) var(--tile)}
+img,svg{display:block;max-width:100%;height:auto}
+h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.12;margin:0;text-wrap:balance;letter-spacing:.03em}
+p{margin:0;text-wrap:pretty}
+a{color:var(--link)}
+::selection{background:#f0dc9a;color:#21201f}
+.skip{position:absolute;left:-9999px;top:12px;z-index:50;background:#fbf6ea;color:#21201f;padding:10px 14px;outline:2px solid #21201f}
+.skip:focus{left:12px}
+:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* drawn-underline links, 44 px hit area */
+.topnav a,.link{position:relative}
+.topnav a::after,.link::after{content:"";position:absolute;left:50%;top:50%;width:max(100%,44px);height:max(100%,44px);transform:translate(-50%,-50%)}
+.link{color:var(--link);text-decoration:none;background:var(--rule) left 100%/100% .5em no-repeat;padding-bottom:.2em;transition:background-size .45s var(--lift)}
+.link:hover{background-size:0% .5em}
+
+/* ---------- hero: one ink drawing, the headline, the one action ---------- */
+.front{position:relative;overflow:hidden}
+.topnav{position:relative;z-index:2;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px 28px;
+  padding:clamp(18px,2.4vw,32px) var(--gutter) 0;font-size:1rem;letter-spacing:.07em}
+.topnav a{color:var(--ink);text-decoration:none;padding:4px 0 6px;background:var(--rule) left 100%/0% .45em no-repeat;transition:background-size .45s var(--lift)}
+.topnav a:hover,.topnav a:focus-visible{background-size:100% .45em}
+.hero-copy{position:relative;z-index:2;max-width:960px;margin:0 auto;padding:clamp(28px,4vw,60px) var(--gutter) 0;text-align:center;
+  display:grid;justify-items:center;gap:clamp(12px,1.3vw,18px)}
+.eyebrow{font-size:.9rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.eyebrow span{white-space:nowrap}
+h1{font-size:clamp(30px,3.5vw,52px);line-height:1.1;max-width:19em}
+.sub{max-width:36em;font-size:clamp(17px,1.35vw,20px);color:var(--ink-2)}
+.tagline{font-family:var(--serif);font-size:1.15rem;color:var(--ink);letter-spacing:.04em}
+.small{font-size:.92rem;color:var(--ink-2)}
+.cta-wrap{display:grid;justify-items:center;gap:10px;margin-top:6px}
+
+.scene{position:relative;z-index:1;pointer-events:none;color:var(--pen)}
+.scene .wide{width:100%;height:auto}
+.scene .tall{display:none;width:100%;height:auto}
+@media (min-width:1000px){.scene{margin-top:-9vw}}
+@media (max-width:700px){.scene .wide{display:none}.scene .tall{display:block;margin-top:12px}}
+
+/* ---------- the call to action: a paper tag with a red stamp ---------- */
+.button{position:relative;display:inline-block;text-decoration:none;padding:2px;background:#b06f63;
+  clip-path:polygon(20px 0,100% 0,100% 100%,20px 100%,0 50%);transition:transform .3s var(--lift);
+  filter:drop-shadow(0 6px 8px rgba(24,22,20,.18))}
+.tag{position:relative;display:inline-flex;align-items:center;gap:14px;min-height:56px;
+  font-family:var(--serif);font-weight:600;font-size:clamp(1.15rem,1.6vw,1.4rem);letter-spacing:.03em;color:var(--accent);
+  padding:.5em 1.3em .55em 2em;background:var(--on-accent) var(--tile);clip-path:polygon(19px 0,100% 0,100% 100%,19px 100%,0 50%)}
+.tag::before{content:"";position:absolute;left:14px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;background:#e9dcc0;box-shadow:inset 0 0 0 1.5px rgba(var(--shade),.45)}
+.stamp{flex:none;width:38px;height:38px;border-radius:50%;background:var(--accent);display:grid;place-items:center;transform:rotate(-8deg);
+  box-shadow:0 0 0 3px var(--on-accent),0 0 0 4.5px rgba(147,51,35,.6)}
+.stamp svg{width:15px;height:15px;margin-left:3px}
+.button:hover{transform:rotate(-1.2deg) translateY(-2px)}
+.button:active{transform:scale(.97)}
+.button:focus-visible{outline:none;padding:4px;background:#21201f}
+.sheet-navy .button:focus-visible{background:#f0b46a}
+
+/* ---------- sheets: each section is a paper with a torn top ---------- */
+.sheet-wrap{position:relative;margin-top:-22px;filter:drop-shadow(0 -1px 1.2px rgba(30,22,12,.24)) drop-shadow(0 -5px 9px rgba(30,22,12,.09))}
+.sheet{position:relative;overflow-x:clip;background:var(--paper) var(--tile);color:var(--ink);
+  -webkit-mask:var(--torn) 0 0/600px 40px repeat-x,linear-gradient(#000,#000) 0 39px/100% calc(100% - 39px) no-repeat;
+          mask:var(--torn) 0 0/600px 40px repeat-x,linear-gradient(#000,#000) 0 39px/100% calc(100% - 39px) no-repeat}
+.sheet::before{content:"";position:absolute;z-index:1;left:0;right:0;top:0;height:40px;pointer-events:none;
+  background:linear-gradient(to bottom,transparent 6px,rgba(255,255,255,.35) 14px,transparent 26px)}
+.sheet-kraft{--paper:#d2b48c;--ink:#21201f;--ink-2:#21201f;--link:#3a2414;--rule:var(--rule-dark)}
+.sheet-graph{--paper:#f5f7f2;--ink-2:#4a4743;--link:#4a2f1d}
+.sheet-graph .sheet{background:
+  linear-gradient(rgba(90,140,120,.13) 1px,transparent 1px) 0 0/24px 24px,
+  linear-gradient(90deg,rgba(90,140,120,.13) 1px,transparent 1px) 0 0/24px 24px,
+  var(--paper) var(--tile)}
+.sheet-laid{--paper:#f0e4cc;--ink-2:#4e4942;--link:#4a2f1d}
+.sheet-laid .sheet{background:repeating-linear-gradient(90deg,rgba(120,90,50,.05) 0 1px,transparent 1px 7px),var(--paper) var(--tile)}
+.sheet-dots{--paper:#f8f6f0;--ink-2:#56524e}
+.sheet-dots .sheet{background:radial-gradient(circle,rgba(90,80,70,.16) 1.1px,transparent 1.4px) 0 0/22px 22px,var(--paper) var(--tile)}
+.sheet-ruled{--paper:#fbf8f1;--ink-2:#55514c}
+.sheet-ruled .sheet{background:repeating-linear-gradient(to bottom,transparent 0 31px,rgba(70,110,160,.16) 31px 32px),var(--paper) var(--tile)}
+.sheet-navy{--paper:#1b2746;--ink:#f4efe4;--ink-2:#c3c9db;--link:#f0b46a;--rule:var(--rule-gold)}
+.sheet-navy :focus-visible{outline-color:#f0b46a}
+
+.shelf{position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:clamp(80px,9vw,140px) var(--gutter) clamp(100px,11vw,170px)}
+.shelf h2{font-size:clamp(34px,4.6vw,64px);margin-bottom:clamp(28px,3.5vw,56px);max-width:16em}
+.lede{max-width:36em;font-size:1.1rem;color:var(--ink-2)}
+.prose{max-width:38em;display:grid;gap:1em}
+.prose h3{font-size:clamp(1.4rem,2.2vw,1.9rem);margin-top:.2em}
+
+/* ---------- prints: real screenshots, taped, tilted, lift on hover ---------- */
+.print{margin:0}
+.pic{position:relative;display:block;transform:rotate(var(--r,0deg))}
+.pic-paper{position:relative;display:block;padding:7px;background:var(--edge);transform-origin:50% 0;
+  box-shadow:0 1px 2px rgba(var(--shade),.12),0 8px 18px -8px rgba(var(--shade),.3);
+  transition:transform .8s var(--lift),box-shadow .8s var(--lift)}
+.pic-paper img{width:100%;height:auto}
+.tape{position:absolute;z-index:2;left:50%;top:0;width:92px;height:26px;transform:translate(-50%,-46%) rotate(var(--tr,-2deg));
+  background:rgba(226,212,178,.82);box-shadow:0 1px 1px rgba(var(--shade),.12);
+  clip-path:polygon(0 8%,4% 0,9% 10%,14% 2%,86% 0,91% 9%,96% 1%,100% 10%,100% 92%,95% 100%,90% 90%,85% 99%,15% 100%,10% 91%,5% 100%,0 90%)}
+.tape::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 46%,rgba(var(--shade),.14) 50%,transparent 54%);opacity:0;transition:opacity .55s var(--lift)}
+.tape.l{left:14%}.tape.r{left:86%}
+.print:hover .pic-paper{transform:perspective(1100px) rotateX(4deg);box-shadow:0 1px 2px rgba(var(--shade),.1),0 21px 24px -15px rgba(var(--shade),.36);transition-duration:.55s}
+.print:hover .tape::after{opacity:1}
+.print figcaption{margin-top:16px}
+.pic-title{display:inline-block;font-family:var(--serif);font-weight:600;font-size:1.45rem;line-height:1.2;padding-bottom:.14em;
+  background:var(--rule) left 100%/0% .5em no-repeat;transition:background-size .55s var(--lift)}
+.print:hover .pic-title{background-size:100% .5em}
+.pic-meta{display:block;color:var(--ink-2);font-size:1rem;margin-top:4px;letter-spacing:.04em}
+
+/* how it plays */
+.table-print{max-width:980px;margin:0 auto clamp(64px,7vw,104px)}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:clamp(56px,6vw,88px) clamp(28px,4vw,52px);
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.step-no{font-family:var(--serif);font-weight:600}
+.teach{margin-top:clamp(48px,5vw,72px);font-family:var(--serif);font-weight:600;font-size:clamp(1.25rem,2vw,1.6rem);max-width:28em;text-wrap:balance}
+
+/* promises */
+.promise-grid{display:grid;gap:clamp(48px,6vw,96px);grid-template-columns:minmax(0,1.35fr) minmax(0,.9fr);align-items:start}
+.promises{margin:0;display:grid;gap:clamp(26px,3vw,40px)}
+.promises dt{display:flex;align-items:center;gap:12px;font-family:var(--serif);font-weight:600;font-size:clamp(1.25rem,1.9vw,1.6rem);line-height:1.2}
+.promises dd{margin:8px 0 0 48px;color:var(--ink-2)}
+.check{flex:none;width:36px;height:36px;color:var(--gain)}
+.how{display:block;font-size:.85rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gain);margin-bottom:2px}
+.phone-print{max-width:340px;justify-self:center}
+.nest-note{position:relative;margin-top:clamp(64px,7vw,104px);display:grid;grid-template-columns:150px minmax(0,1fr);gap:clamp(24px,3vw,44px);align-items:center;
+  max-width:820px;padding:clamp(24px,3vw,36px);background:#f3e6c4 var(--tile);transform:rotate(-.6deg);
+  box-shadow:0 1px 2px rgba(var(--shade),.12),0 10px 22px -10px rgba(var(--shade),.32)}
+.nest-note h3{font-size:clamp(1.35rem,2vw,1.75rem);margin-bottom:.4em}
+.nest-note p{color:#3f3a33}
+.gold-mark{color:var(--gold-text)}
+@media (max-width:820px){.promise-grid{grid-template-columns:1fr}.phone-print{max-width:300px}}
+@media (max-width:520px){.nest-note{grid-template-columns:1fr;justify-items:start}.nest-note .print{width:140px}}
+
+/* daily deal */
+.deal-grid{display:grid;gap:clamp(40px,6vw,88px);grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start}
+.ticket{position:relative;background:#fffdf8;padding:28px 28px 24px;transform:rotate(1deg);
+  box-shadow:0 1px 2px rgba(var(--shade),.12),0 12px 24px -12px rgba(var(--shade),.35);}
+.ticket::before,.ticket::after{content:"";position:absolute;top:50%;width:18px;height:18px;margin-top:-9px;border-radius:50%;background:#f0e4cc;box-shadow:inset 0 0 2px rgba(24,22,20,.25)}
+.ticket::before{left:-9px}.ticket::after{right:-9px}
+.ticket-head{font-family:var(--serif);font-weight:600;font-size:1.15rem}
+.grid-row{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-weight:700;font-size:1.15rem}
+.grid-row span{display:inline-flex;align-items:center;gap:4px}
+.grid-row svg{width:20px;height:24px}
+.ticket small{display:block;margin-top:14px;font-size:.88rem;color:#55514c}
+.deal-close{margin-top:1.4em;font-family:var(--serif);font-weight:600;font-size:1.25rem}
+.deal-link{margin-top:1.2em;font-size:1.1rem}
+@media (max-width:820px){.deal-grid{grid-template-columns:1fr}.ticket{max-width:420px}}
+
+/* coming soon */
+.soon{position:relative;max-width:40em;display:grid;gap:1em}
+.notyet{display:inline-block;justify-self:start;font-family:var(--serif);font-weight:600;font-size:1rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--danger);padding:.35em .9em;border:2px solid var(--danger);border-radius:4px;transform:rotate(-3deg);margin-bottom:.4em}
+
+/* faq */
+.faq{max-width:46em;display:grid;gap:14px}
+.faq details{background:rgba(255,255,255,.55);box-shadow:inset 0 0 0 1px rgba(var(--shade),.14)}
+.faq summary{cursor:pointer;list-style:none;padding:16px 52px 16px 20px;position:relative;font-family:var(--serif);font-weight:600;font-size:1.2rem;min-height:44px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";position:absolute;right:20px;top:50%;transform:translateY(-50%);font-family:var(--sans);font-size:1.5rem;line-height:1;color:var(--ink-2)}
+.faq details[open] summary::after{content:"\2013"}
+.faq summary:focus-visible{outline-offset:-3px}
+.faq details p{padding:0 20px 18px;color:var(--ink-2)}
+.feedback-note{margin-top:clamp(56px,6vw,88px);max-width:34em;padding:24px 28px;background:#fdf3b8 var(--tile);transform:rotate(.8deg);
+  box-shadow:0 1px 2px rgba(var(--shade),.12),0 10px 20px -10px rgba(var(--shade),.3)}
+.feedback-note h2{font-size:clamp(1.5rem,2.4vw,2rem)!important;margin-bottom:.4em!important}
+.feedback-note p{color:#3d3a35}
+
+/* footer */
+.colophon{position:relative;padding:clamp(80px,7vw,112px) var(--gutter) clamp(90px,10vw,140px);text-align:center}
+.colophon-inner{max-width:560px;margin:0 auto;display:grid;justify-items:center;gap:14px}
+.sign{font-family:var(--serif);font-weight:600;font-size:1.9rem}
+.colophon p{color:var(--ink-2)}
+.colophon .button{margin:14px 0 6px}
+
+
+@media (max-width:760px){.topnav{justify-content:center;gap:4px 22px;font-size:.95rem}}
+@media (max-width:700px){.table-print{max-width:300px}.phone-print{display:none}}
+@media (max-width:520px){.tag{white-space:nowrap;font-size:1.06rem;gap:10px;padding:.45em .95em .5em 1.75em;min-height:54px}.stamp{width:32px;height:32px}.tagline{font-size:1.05rem}}
+/* short landscape phones (667×320, 568×290, 800×300): the one action stays in the first screen */
+@media (max-height:420px){
+  .topnav{padding-top:6px;font-size:.9rem;gap:2px 20px}
+  .hero-copy{padding-top:4px;gap:8px}
+  .eyebrow{font-size:.74rem;letter-spacing:.1em}
+  h1{font-size:clamp(20px,3.4vw,26px);max-width:32em}
+  .cta-wrap{order:2;margin-top:0;gap:4px}
+  .sub{order:3;font-size:15px;max-width:44em}
+  .tagline{font-size:1rem}
+  .scene{margin-top:0}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the game details</a>
+
+<!-- ink drawing parts (original, drawn for Fox & Hens) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="pen"><feTurbulence type="fractalNoise" baseFrequency=".04" numOctaves="2" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="2.6"/></filter>
+    <pattern id="h1" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(38)"><line x1="0" y1="0" x2="0" y2="5" stroke="#2b2622" stroke-width=".9"/></pattern>
+    <pattern id="h2" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(-42)"><line x1="0" y1="0" x2="0" y2="4" stroke="#2b2622" stroke-width=".8"/></pattern>
+    <pattern id="h3" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(28)"><line x1="0" y1="0" x2="0" y2="8" stroke="#2b2622" stroke-width=".7"/></pattern>
+    <pattern id="h4" width="3.2" height="3.2" patternUnits="userSpaceOnUse" patternTransform="rotate(90)"><line x1="0" y1="0" x2="0" y2="3.2" stroke="#2b2622" stroke-width=".8"/></pattern>
+
+    <symbol id="hen" viewBox="0 0 320 300" overflow="visible">
+      <g fill="none" stroke="#2b2622" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- tail -->
+        <path d="M78 178 C48 150 38 110 54 76 C64 106 78 124 100 134 Z" fill="url(#h2)"/>
+        <path d="M92 160 C72 122 74 90 96 64 C98 98 108 116 124 126 Z" fill="url(#h1)"/>
+        <path d="M60 96 C66 120 80 138 96 146 M74 84 C80 108 92 124 108 132" stroke-width="1.2"/>
+        <!-- body -->
+        <path d="M62 196 C52 156 72 120 112 114 C142 110 166 122 186 114 C190 98 194 84 202 72 C212 54 242 52 254 70 C260 80 258 96 250 108 C264 134 262 172 240 198 C214 224 160 232 116 228 C86 224 68 214 62 196 Z" fill="url(#h3)"/>
+        <!-- neck feathers -->
+        <path d="M200 110 C205 125 212 135 222 140 M190 118 C196 132 204 142 214 148 M210 100 C214 114 220 122 230 128 M222 96 C226 106 232 112 240 116" stroke-width="1.3"/>
+        <!-- comb, beak, wattle, eye -->
+        <path d="M218 60 C214 44 226 38 230 50 C232 36 246 36 244 50 C252 42 262 50 252 60 Z" fill="url(#h2)"/>
+        <path d="M254 80 L273 88 L254 95 Z" fill="#fff6e0"/>
+        <path d="M250 97 C259 106 253 117 244 107 Z" fill="url(#h4)"/>
+        <circle cx="238" cy="77" r="3.6" fill="#2b2622" stroke="none"/>
+        <!-- wing -->
+        <path d="M118 150 C148 130 198 134 214 160 C200 190 160 200 124 186 C114 176 112 162 118 150 Z" fill="url(#h1)"/>
+        <path d="M118 150 C148 130 198 134 214 160 C200 190 160 200 124 186 C114 176 112 162 118 150 Z" fill="url(#h2)" stroke="none" opacity=".5"/>
+        <path d="M134 176 C150 188 172 188 194 178 M140 162 C160 172 182 172 204 165 M128 168 C140 180 150 186 160 190" stroke-width="1.4"/>
+        <!-- nest with eggs -->
+        <ellipse cx="62" cy="214" rx="15" ry="19" fill="#fbf6ea" transform="rotate(-12 62 214)"/>
+        <g transform="translate(272 206)">
+          <ellipse cx="0" cy="0" rx="16" ry="20" fill="#e2b23a" transform="rotate(10)"/>
+          <path d="M0 -28 V-34 M20 -18 L25 -22 M-20 -18 L-25 -22 M26 2 H32 M-26 2 H-32" stroke-width="1.6"/>
+        </g>
+        <path d="M18 222 C80 202 250 202 306 222 C298 262 60 270 18 222 Z" fill="url(#h1)"/>
+        <path d="M18 222 C80 202 250 202 306 222 C298 262 60 270 18 222 Z" fill="url(#h4)" stroke="none" opacity=".35"/>
+        <g stroke-width="1.5"><path d="M15.0 226.1 q8.6 3.9 17.3 13.8 M17.9 222.7 q13.0 -6.1 25.9 -6.3 M23.2 230.6 q9.9 -10.7 19.8 -15.4 M27.2 242.9 q11.7 -0.5 23.3 5.1 M37.8 209.6 q8.2 -0.7 16.4 4.7 M39.4 208.9 q13.4 -0.1 26.9 5.8 M50.9 234.7 q10.3 -5.6 20.7 -5.3 M53.2 240.6 q12.3 0.1 24.6 6.2 M58.8 216.6 q13.1 -2.5 26.2 1.0 M65.9 242.6 q12.9 -7.9 25.8 -9.8 M70.1 206.5 q11.7 6.1 23.4 18.2 M82.0 211.7 q9.1 -4.1 18.2 -2.2 M87.1 217.4 q7.8 -1.3 15.5 3.4 M95.8 216.2 q6.5 -8.4 13.0 -10.7 M104.1 226.6 q6.8 -7.3 13.6 -8.5 M108.8 209.3 q9.0 -1.4 18.1 3.1 M118.8 237.7 q7.8 -6.7 15.7 -7.5 M114.4 229.8 q13.8 2.7 27.6 11.4 M124.8 210.4 q8.1 1.7 16.2 9.4 M126.8 205.4 q11.2 0.9 22.3 7.7 M137.7 214.0 q8.8 4.6 17.6 15.1 M145.5 219.9 q11.2 -10.6 22.4 -15.2 M149.3 212.5 q8.6 -3.1 17.1 -0.2 M162.3 233.3 q7.3 -0.3 14.7 5.4 M160.7 243.2 q7.9 -7.4 15.8 -8.9 M168.3 225.8 q12.8 -2.4 25.5 1.1 M169.5 216.2 q11.7 -5.3 23.4 -4.5 M179.9 237.9 q9.1 -3.4 18.3 -0.8 M185.0 209.4 q11.5 -3.9 23.1 -1.7 M188.1 217.3 q12.1 -1.3 24.3 3.4 M203.8 227.5 q7.1 -3.8 14.2 -1.6 M209.6 223.1 q9.1 4.9 18.3 15.8 M214.6 235.4 q6.9 -6.2 13.8 -6.4 M215.7 230.9 q12.5 -1.1 25.0 3.8 M223.3 244.7 q13.1 -8.5 26.2 -11.0 M231.6 222.2 q11.6 -2.5 23.1 0.9 M239.9 223.2 q7.5 -4.3 15.1 -2.5 M243.7 241.8 q10.0 -1.7 20.0 2.6 M253.3 231.9 q7.3 -5.3 14.6 -4.7 M258.6 208.3 q8.3 0.0 16.6 6.1 M263.7 229.0 q9.0 -4.2 17.9 -2.4 M265.8 218.2 q7.6 0.5 15.2 6.9 M277.5 237.4 q9.2 -5.9 18.3 -5.8 M277.4 223.9 q13.6 -7.5 27.2 -9.0 M291.2 223.7 q7.6 -0.4 15.3 5.3 M287.4 241.0 q14.5 -1.6 29.1 2.9"/></g>
+      </g>
+    </symbol>
+
+    <symbol id="fox" viewBox="0 0 360 270" overflow="visible">
+      <g fill="none" stroke="#2b2622" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- tail -->
+        <path d="M270 170 C310 160 345 125 340 80 C338 60 328 48 318 44 C322 70 310 100 285 120 C275 128 268 140 266 152 Z" fill="url(#h2)"/>
+        <path d="M318 44 C330 52 340 66 340 80 C332 74 322 72 314 74 C318 64 320 54 318 44 Z" fill="#fbf6ea"/>
+        <path d="M300 128 C312 116 320 100 324 86 M288 140 C302 130 314 118 322 104" stroke-width="1.2"/>
+        <!-- body -->
+        <path d="M146 132 C180 126 236 128 272 144 C292 154 298 180 284 196 C272 208 252 210 236 208 L166 210 C146 204 136 160 146 132 Z" fill="url(#h1)"/>
+        <path d="M160 134 C200 128 240 132 268 146 C240 142 200 140 162 150 Z" fill="url(#h4)" stroke="none" opacity=".75"/>
+        <path d="M180 200 C200 186 240 186 262 198 M196 168 C216 160 240 162 258 170" stroke-width="1.1"/>
+        <!-- legs -->
+        <path d="M164 208 L160 246 L146 250 M180 210 L178 246 L164 250 M256 204 C266 222 264 240 252 250 L238 250 M234 208 L234 246 L222 250"/>
+        <!-- head -->
+        <path d="M138 84 L150 52 L157 92 Z" fill="url(#h4)"/>
+        <path d="M152 120 C150 100 138 86 120 84 C100 82 84 92 74 106 C64 118 52 126 38 132 C36 136 40 140 46 141 C66 144 88 150 106 152 C124 154 140 146 150 136 Z" fill="url(#h3)"/>
+        <path d="M122 86 L117 50 L140 76 Z" fill="url(#h2)"/>
+        <path d="M60 140 C80 160 108 166 128 156 M150 136 C146 156 150 176 160 190" stroke-width="1.4"/>
+        <path d="M92 108 C98 102 106 102 111 108 C104 112 98 112 92 108 Z" fill="#2b2622"/>
+        <circle cx="40" cy="134" r="4.2" fill="#2b2622" stroke="none"/>
+        <path d="M50 137 L26 129 M52 141 L28 144" stroke-width="1"/>
+      </g>
+    </symbol>
+
+    <symbol id="post" viewBox="0 0 24 150" overflow="visible">
+      <g fill="none" stroke="#2b2622" stroke-width="2" stroke-linejoin="round">
+        <path d="M2 14 L12 2 L22 14 L22 150 L2 150 Z" fill="url(#h4)" fill-opacity=".55"/>
+        <path d="M8 30 C9 60 7 90 9 130 M15 22 C16 50 14 90 16 140" stroke-width=".9"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="front">
+  <nav class="topnav" aria-label="Sections">
+    <a href="#how">how it plays</a>
+    <a href="#daily">daily deal</a>
+    <a href="#faq">faq</a>
+  </nav>
+
+
+  <div class="hero-copy">
+    <p class="eyebrow"><span>Free card game</span> · <span>No ads</span> · <span>No login</span> · <span>Plays offline once loaded</span></p>
+    <h1>Today's deck is the same for everyone. How many eggs can you roost before the second fox?</h1>
+    <p class="sub">A free farmyard card game you play in your browser right now. No ads, no login, and it keeps working offline once it has loaded. Before every draw, the button tells you your exact raid chance. Then it's your call.</p>
+    <div class="cta-wrap">
+      <a class="button" href="play/"><span class="tag"><span class="stamp" aria-hidden="true"><svg viewBox="0 0 12 14"><path d="M1 1 L11 7 L1 13 Z" fill="#fbf6ea"/></svg></span>Play free in your browser</span></a>
+      <p class="tagline">Gather eggs. Roost before the second fox.</p>
+      <!-- [GAME_MINUTES]: once measured, replace "a few minutes" below with "about [GAME_MINUTES] minutes" (copy draft said [2–5]). -->
+      <p class="small">No download. No sign-up. A game takes a few minutes.</p>
+    </div>
+  </div>
+
+  <div class="scene" aria-hidden="true">
+    <svg class="wide" viewBox="0 0 1440 430" preserveAspectRatio="xMidYMax meet" focusable="false">
+      <g filter="url(#pen)">
+        <g stroke="#2b2622" stroke-width="2" fill="none">
+          <path d="M360 300 C600 296 840 304 1080 298" /><path d="M360 344 C600 340 840 348 1080 342"/>
+          <path d="M362 306 C600 302 840 310 1078 304 M362 350 C600 346 840 354 1078 348" stroke-width=".8"/>
+        </g>
+        <use href="#post" x="400" y="252" width="24" height="140"/><use href="#post" x="510" y="252" width="24" height="140"/><use href="#post" x="620" y="252" width="24" height="140"/><use href="#post" x="730" y="252" width="24" height="140"/><use href="#post" x="840" y="252" width="24" height="140"/><use href="#post" x="950" y="252" width="24" height="140"/>
+        <ellipse cx="220" cy="388" rx="170" ry="16" fill="url(#h2)" stroke="none" opacity=".75"/>
+        <ellipse cx="1240" cy="386" rx="140" ry="12" fill="url(#h2)" stroke="none" opacity=".75"/>
+        <use href="#hen" x="60" y="128" width="320" height="300"/>
+        <use href="#fox" x="1040" y="128" width="360" height="270"/>
+        <g stroke="#2b2622" stroke-width="1.3" fill="none" stroke-linecap="round">
+          <path d="M-20 392 C200 380 420 398 720 388 S1200 380 1460 392" stroke-width="1.8"/>
+          <path d="M394.1 401.2 q3.0 -8.2 6.0 -16.5 M396.3 401.2 q-0.8 -11.5 -1.6 -23.0 M398.5 401.2 q1.2 -8.7 2.4 -17.4 M1035.8 409.9 q-3.0 -8.1 -6.0 -16.1 M1038.0 409.9 q2.6 -4.3 5.2 -8.6 M1040.2 409.9 q1.5 -4.4 2.9 -8.7 M1042.4 409.9 q-1.3 -9.1 -2.7 -18.3 M1145.6 399.2 q-2.2 -7.6 -4.3 -15.3 M1147.8 399.2 q-1.6 -10.9 -3.3 -21.8 M1127.7 409.4 q-2.7 -5.0 -5.5 -10.1 M1129.9 409.4 q1.0 -8.8 2.0 -17.6 M1132.1 409.4 q-3.0 -7.3 -5.9 -14.6 M1134.3 409.4 q2.3 -5.8 4.5 -11.6 M363.8 408.3 q-3.2 -8.8 -6.5 -17.6 M366.0 408.3 q2.0 -6.0 3.9 -12.1 M368.2 408.3 q3.1 -8.9 6.3 -17.7 M720.6 412.0 q2.0 -7.5 4.1 -15.1 M722.8 412.0 q-2.9 -12.2 -5.8 -24.3 M1351.6 408.4 q-2.1 -8.1 -4.2 -16.1 M1353.8 408.4 q-3.5 -12.0 -6.9 -24.0 M793.0 407.5 q3.1 -11.2 6.2 -22.3 M795.2 407.5 q1.1 -8.2 2.1 -16.3 M797.4 407.5 q1.6 -5.8 3.1 -11.7 M799.6 407.5 q1.0 -11.4 2.0 -22.7 M1037.8 401.8 q3.3 -12.8 6.7 -25.6 M1040.0 401.8 q2.0 -8.8 4.1 -17.7 M1042.2 401.8 q2.9 -6.9 5.7 -13.8 M1239.4 403.5 q-1.1 -4.3 -2.2 -8.7 M1241.6 403.5 q-1.6 -7.8 -3.1 -15.6 M1332.8 401.8 q-3.3 -7.9 -6.5 -15.7 M1335.0 401.8 q1.3 -8.8 2.6 -17.6 M1327.4 405.1 q0.1 -12.1 0.3 -24.2 M1329.6 405.1 q-0.4 -10.1 -0.8 -20.2 M1331.8 405.1 q0.6 -11.9 1.1 -23.8 M1334.0 405.1 q1.8 -10.2 3.6 -20.4 M631.6 406.3 q-2.3 -9.1 -4.7 -18.1 M633.8 406.3 q2.9 -8.6 5.7 -17.3 M636.0 406.3 q1.2 -6.3 2.4 -12.6 M638.2 406.3 q2.6 -12.6 5.2 -25.2 M879.8 403.0 q0.2 -12.7 0.3 -25.4 M882.0 403.0 q-2.1 -9.2 -4.2 -18.3 M772.4 405.5 q0.3 -7.4 0.5 -14.8 M774.6 405.5 q2.9 -4.4 5.8 -8.8 M776.8 405.5 q3.4 -8.9 6.9 -17.8 M779.0 405.5 q-2.8 -5.1 -5.7 -10.2 M233.5 411.1 q3.2 -7.7 6.4 -15.4 M235.7 411.1 q-1.6 -12.3 -3.2 -24.6 M237.9 411.1 q-2.6 -8.3 -5.2 -16.5 M623.2 409.6 q-2.7 -8.7 -5.5 -17.4 M625.4 409.6 q-3.3 -7.8 -6.6 -15.6 M627.6 409.6 q1.4 -6.3 2.8 -12.7 M1416.8 399.5 q1.3 -6.0 2.6 -12.1 M1419.0 399.5 q-1.0 -6.9 -2.0 -13.8 M894.9 400.4 q2.5 -9.2 4.9 -18.5 M897.1 400.4 q1.5 -9.6 3.0 -19.2 M899.3 400.4 q2.7 -10.3 5.3 -20.6 M901.5 400.4 q0.9 -4.2 1.9 -8.4 M1194.8 407.0 q0.9 -5.8 1.8 -11.7 M1197.0 407.0 q0.2 -9.7 0.4 -19.5 M1199.2 407.0 q0.8 -11.7 1.6 -23.3 M1201.4 407.0 q-1.9 -11.7 -3.7 -23.4 M1071.5 409.5 q-1.3 -6.8 -2.6 -13.7 M1073.7 409.5 q-2.0 -12.3 -3.9 -24.6 M1447.6 410.5 q-2.6 -12.0 -5.1 -24.0 M1449.8 410.5 q-0.8 -4.8 -1.6 -9.6 M624.8 411.2 q-2.6 -11.1 -5.2 -22.2 M627.0 411.2 q1.3 -7.6 2.6 -15.3 M629.2 411.2 q-2.1 -4.2 -4.2 -8.3 M631.4 411.2 q2.9 -10.1 5.8 -20.3 M1403.8 400.5 q-1.1 -9.7 -2.2 -19.4 M1406.0 400.5 q2.3 -13.0 4.7 -26.0 M1408.2 400.5 q-0.1 -11.2 -0.3 -22.5 M1410.4 400.5 q1.8 -4.2 3.7 -8.4 M885.5 410.8 q-2.2 -5.3 -4.4 -10.6 M887.7 410.8 q2.4 -5.8 4.8 -11.7 M889.9 410.8 q3.0 -12.9 6.0 -25.8 M129.1 399.8 q1.9 -8.2 3.7 -16.3 M131.3 399.8 q-0.2 -6.9 -0.5 -13.9 M133.5 399.8 q-0.5 -8.6 -1.0 -17.3 M135.7 399.8 q-3.4 -9.4 -6.8 -18.8 M1013.5 410.0 q-1.0 -7.7 -2.0 -15.3 M1015.7 410.0 q3.0 -7.3 5.9 -14.7 M873.1 400.2 q-2.9 -6.9 -5.8 -13.8 M875.3 400.2 q2.6 -11.6 5.3 -23.2 M1316.8 411.2 q0.0 -9.4 0.1 -18.8 M1319.0 411.2 q2.1 -12.8 4.3 -25.7 M1321.2 411.2 q2.9 -6.3 5.8 -12.6 M1323.4 411.2 q1.9 -10.7 3.9 -21.4 M1179.4 404.3 q1.4 -11.9 2.7 -23.8 M1181.6 404.3 q1.9 -10.9 3.7 -21.8 M1183.8 404.3 q1.6 -7.7 3.1 -15.3 M93.0 403.4 q2.7 -4.9 5.4 -9.8 M95.2 403.4 q2.8 -12.9 5.6 -25.8 M97.4 403.4 q-1.6 -4.4 -3.2 -8.9 M1393.7 402.9 q0.5 -9.9 1.0 -19.9 M1395.9 402.9 q-0.8 -8.8 -1.5 -17.6 M1449.8 407.3 q-0.7 -5.1 -1.5 -10.2 M1452.0 407.3 q-2.7 -9.2 -5.4 -18.3 M1454.2 407.3 q-1.8 -5.0 -3.7 -9.9 M1456.4 407.3 q0.0 -8.0 0.1 -16.0 M1101.5 407.4 q-1.7 -4.9 -3.5 -9.8 M1103.7 407.4 q0.4 -12.2 0.7 -24.3 M731.4 411.6 q-2.8 -11.6 -5.6 -23.2 M733.6 411.6 q1.0 -8.0 2.0 -16.0 M735.8 411.6 q1.2 -8.9 2.4 -17.9 M738.0 411.6 q-0.8 -12.6 -1.6 -25.2 M1360.4 404.0 q0.3 -11.7 0.6 -23.4 M1362.6 404.0 q-0.5 -9.4 -1.0 -18.7 M712.0 402.7 q-0.9 -9.4 -1.9 -18.8 M714.2 402.7 q1.1 -6.6 2.2 -13.1 M716.4 402.7 q-1.5 -9.0 -3.0 -18.1 M1036.2 402.8 q0.6 -11.0 1.2 -21.9 M1038.4 402.8 q-0.6 -9.7 -1.3 -19.4 M989.1 399.7 q-3.1 -10.7 -6.3 -21.5 M991.3 399.7 q3.1 -12.9 6.2 -25.8 M993.5 399.7 q2.8 -4.7 5.7 -9.3 M617.1 405.2 q-2.8 -4.4 -5.6 -8.8 M619.3 405.2 q2.9 -11.3 5.7 -22.6 M200.8 411.5 q-2.7 -9.4 -5.4 -18.9 M203.0 411.5 q-0.3 -9.6 -0.6 -19.2 M287.3 399.7 q-1.0 -5.4 -1.9 -10.8 M289.5 399.7 q-0.6 -5.3 -1.2 -10.5 M291.7 399.7 q1.0 -9.4 2.0 -18.8 M293.9 399.7 q-1.0 -10.1 -1.9 -20.3 M1076.0 409.6 q1.6 -12.6 3.3 -25.1 M1078.2 409.6 q-2.7 -6.1 -5.4 -12.3 M1293.3 409.2 q-1.6 -11.6 -3.2 -23.2 M1295.5 409.2 q1.6 -9.5 3.2 -19.0 M1297.7 409.2 q-2.2 -10.3 -4.3 -20.6 M1299.9 409.2 q-1.8 -6.5 -3.6 -13.0 M1379.8 405.5 q2.7 -12.2 5.3 -24.5 M1382.0 405.5 q-3.1 -4.4 -6.1 -8.7 M1384.2 405.5 q-0.5 -6.4 -1.0 -12.9 M1386.4 405.5 q-2.8 -9.6 -5.6 -19.2 M780.8 399.9 q-2.4 -12.2 -4.7 -24.4 M783.0 399.9 q3.4 -6.1 6.7 -12.2 M696.7 403.6 q1.7 -7.1 3.4 -14.2 M698.9 403.6 q-3.0 -11.5 -6.0 -23.1 M701.1 403.6 q2.2 -5.1 4.3 -10.2 M900.6 409.0 q1.7 -8.0 3.5 -16.0 M902.8 409.0 q-2.4 -7.5 -4.9 -15.0 M214.1 409.9 q0.3 -6.9 0.7 -13.9 M216.3 409.9 q2.9 -10.7 5.9 -21.4 M218.5 409.9 q-0.9 -7.8 -1.8 -15.7 M220.7 409.9 q2.6 -4.9 5.3 -9.7 M104.6 400.1 q2.2 -9.1 4.4 -18.2 M106.8 400.1 q2.3 -8.2 4.5 -16.3 M109.0 400.1 q-1.3 -4.1 -2.7 -8.2 M111.2 400.1 q0.7 -12.2 1.5 -24.4 M1004.9 405.4 q2.7 -7.0 5.3 -13.9 M1007.1 405.4 q1.1 -6.0 2.2 -11.9 M1009.3 405.4 q2.8 -6.9 5.7 -13.9 M1011.5 405.4 q-0.4 -6.9 -0.8 -13.8 M858.4 410.7 q-0.4 -12.2 -0.9 -24.4 M860.6 410.7 q-1.4 -11.2 -2.7 -22.5 M862.8 410.7 q-0.7 -6.9 -1.4 -13.7 M865.0 410.7 q2.8 -12.4 5.5 -24.8 M352.5 403.7 q1.2 -4.2 2.5 -8.4 M354.7 403.7 q2.1 -9.3 4.1 -18.5 M356.9 403.7 q-0.9 -10.6 -1.8 -21.3 M559.8 401.0 q-2.3 -9.1 -4.5 -18.1 M562.0 401.0 q2.7 -10.8 5.3 -21.7 M564.2 401.0 q-3.3 -6.5 -6.7 -13.1 M566.4 401.0 q0.3 -8.6 0.6 -17.3 M818.5 411.6 q-0.5 -11.6 -1.1 -23.2 M820.7 411.6 q-1.4 -9.2 -2.7 -18.5 M822.9 411.6 q-1.2 -8.9 -2.3 -17.8 M825.1 411.6 q-2.8 -6.5 -5.5 -12.9 M448.2 399.3 q1.7 -5.3 3.4 -10.6 M450.4 399.3 q-1.8 -9.8 -3.6 -19.7 M452.6 399.3 q1.9 -6.0 3.7 -12.0 M454.8 399.3 q1.9 -8.7 3.7 -17.4 M565.8 403.4 q-0.0 -10.1 -0.1 -20.1 M568.0 403.4 q1.5 -8.8 3.1 -17.7 M570.2 403.4 q2.9 -10.4 5.8 -20.7 M589.5 409.7 q-3.5 -7.1 -6.9 -14.3 M591.7 409.7 q-2.9 -7.4 -5.8 -14.8 M593.9 409.7 q0.3 -8.2 0.6 -16.4 M596.1 409.7 q-1.0 -4.2 -1.9 -8.4 M4.8 400.4 q-1.8 -12.2 -3.6 -24.5 M7.0 400.4 q0.9 -5.5 1.9 -10.9 M9.2 400.4 q-1.3 -10.2 -2.5 -20.3 M558.4 405.9 q-3.1 -12.7 -6.2 -25.5 M560.6 405.9 q-2.7 -6.8 -5.4 -13.6 M562.8 405.9 q1.9 -9.8 3.9 -19.7 M252.0 399.8 q-0.1 -4.2 -0.3 -8.3 M254.2 399.8 q-1.3 -11.2 -2.6 -22.4 M256.4 399.8 q-1.0 -5.8 -2.0 -11.6 M849.0 406.8 q-1.9 -9.4 -3.9 -18.7 M851.2 406.8 q-1.5 -5.7 -3.1 -11.3 M853.4 406.8 q1.8 -5.6 3.6 -11.1 M445.1 406.1 q-1.7 -8.3 -3.4 -16.6 M447.3 406.1 q2.9 -12.0 5.8 -24.0 M449.5 406.1 q0.3 -7.1 0.7 -14.2 M451.7 406.1 q-0.1 -12.6 -0.2 -25.2 M312.7 399.6 q-0.8 -11.2 -1.6 -22.4 M314.9 399.6 q0.1 -8.7 0.2 -17.5 M390.8 411.9 q2.7 -12.3 5.5 -24.6 M393.0 411.9 q2.8 -11.9 5.7 -23.7 M395.2 411.9 q-1.8 -8.1 -3.5 -16.1 M397.4 411.9 q2.6 -7.8 5.2 -15.6 M597.0 409.0 q2.6 -6.3 5.2 -12.7 M599.2 409.0 q1.0 -8.6 1.9 -17.3 M1440.0 402.5 q0.5 -4.5 1.0 -9.0 M1442.2 402.5 q-2.1 -5.6 -4.1 -11.2 M1444.4 402.5 q-2.5 -12.2 -4.9 -24.5 M1446.6 402.5 q-1.0 -5.2 -2.1 -10.3 M887.7 405.9 q-2.9 -10.2 -5.8 -20.5 M889.9 405.9 q0.3 -10.7 0.6 -21.5 M892.1 405.9 q-3.4 -8.6 -6.7 -17.1 M264.1 401.5 q2.3 -4.8 4.6 -9.6 M266.3 401.5 q0.3 -5.9 0.6 -11.8 M268.5 401.5 q-2.4 -8.7 -4.8 -17.5 M270.7 401.5 q-1.3 -11.5 -2.6 -23.0 M443.7 400.0 q1.2 -13.0 2.3 -26.0 M445.9 400.0 q-3.0 -4.6 -6.0 -9.2 M448.1 400.0 q1.2 -5.3 2.3 -10.5 M976.8 408.7 q-3.4 -9.9 -6.8 -19.8 M979.0 408.7 q1.5 -7.4 2.9 -14.8 M336.7 406.3 q2.5 -10.9 5.0 -21.9 M338.9 406.3 q1.5 -11.6 3.1 -23.2 M341.1 406.3 q-2.4 -12.1 -4.9 -24.2 M906.5 411.2 q-1.1 -6.7 -2.3 -13.4 M908.7 411.2 q1.2 -7.5 2.3 -15.1 M910.9 411.2 q-2.1 -6.3 -4.2 -12.6 M913.1 411.2 q-1.2 -10.6 -2.4 -21.2 M1369.8 406.3 q-0.4 -9.8 -0.7 -19.5 M1372.0 406.3 q-2.8 -7.4 -5.6 -14.9 M1374.2 406.3 q-2.6 -9.6 -5.2 -19.2 M1376.4 406.3 q-2.2 -9.7 -4.5 -19.3 M272.0 399.5 q-2.9 -9.3 -5.7 -18.7 M274.2 399.5 q-2.4 -6.0 -4.8 -12.1 M276.4 399.5 q-0.7 -5.1 -1.3 -10.2 M96.1 411.0 q-2.5 -12.3 -5.1 -24.7 M98.3 411.0 q-2.5 -5.8 -4.9 -11.7 M100.5 411.0 q-0.1 -10.2 -0.2 -20.4 M1335.1 407.1 q1.4 -7.6 2.8 -15.2 M1337.3 407.1 q2.0 -12.8 4.1 -25.7 M1339.5 407.1 q0.8 -9.9 1.5 -19.9 M1341.7 407.1 q-1.2 -4.2 -2.4 -8.3 M489.7 407.5 q-2.1 -9.0 -4.1 -18.0 M491.9 407.5 q-1.4 -7.0 -2.9 -14.0 M139.9 408.3 q2.8 -10.9 5.6 -21.8 M142.1 408.3 q-1.0 -8.9 -2.1 -17.9 M144.3 408.3 q-2.5 -8.5 -5.0 -17.0 M1031.6 411.8 q1.4 -13.0 2.9 -26.0 M1033.8 411.8 q0.5 -12.4 0.9 -24.8 M1036.0 411.8 q1.1 -4.2 2.2 -8.5 M1038.2 411.8 q-2.5 -11.0 -5.1 -22.0 M687.7 404.4 q3.0 -7.0 6.0 -13.9 M689.9 404.4 q-0.3 -7.3 -0.5 -14.5 M692.1 404.4 q3.3 -5.1 6.6 -10.2 M188.0 410.8 q-3.1 -8.9 -6.1 -17.8 M190.2 410.8 q-2.3 -12.2 -4.6 -24.5 M192.4 410.8 q2.8 -10.7 5.6 -21.4 M194.6 410.8 q-2.5 -7.0 -5.0 -14.0 M1353.6 399.0 q-1.8 -12.1 -3.6 -24.1 M1355.8 399.0 q2.3 -9.2 4.6 -18.3 M1358.0 399.0 q0.3 -5.7 0.7 -11.3 M1360.2 399.0 q-3.3 -4.7 -6.6 -9.4 M252.9 411.8 q1.8 -5.2 3.6 -10.5 M255.1 411.8 q2.8 -11.6 5.7 -23.3 M257.3 411.8 q1.0 -9.5 2.0 -19.1 M259.5 411.8 q-2.4 -10.9 -4.8 -21.7 M591.5 399.4 q0.5 -7.5 1.0 -15.0 M593.7 399.4 q0.1 -5.6 0.3 -11.1 M595.9 399.4 q0.5 -6.4 1.0 -12.7 M598.1 399.4 q1.0 -7.0 2.0 -14.0 M45.3 407.7 q-0.0 -7.6 -0.0 -15.3 M47.5 407.7 q-1.1 -4.9 -2.2 -9.8 M1299.2 410.9 q1.8 -10.8 3.5 -21.6 M1301.4 410.9 q3.5 -8.4 6.9 -16.7 M1303.6 410.9 q2.5 -11.5 5.0 -23.1 M1305.8 410.9 q-0.5 -7.7 -0.9 -15.4 M816.3 410.8 q0.1 -7.0 0.3 -13.9 M818.5 410.8 q-3.3 -7.8 -6.7 -15.6 M820.7 410.8 q-1.4 -12.2 -2.9 -24.3 M822.9 410.8 q-0.5 -9.5 -0.9 -19.1 M539.7 403.2 q2.6 -11.9 5.3 -23.9 M541.9 403.2 q2.4 -6.2 4.8 -12.4 M544.1 403.2 q2.6 -6.2 5.2 -12.4 M1409.9 405.2 q-1.8 -8.7 -3.7 -17.5 M1412.1 405.2 q-0.7 -6.8 -1.5 -13.5 M334.4 399.9 q1.2 -12.7 2.3 -25.4 M336.6 399.9 q-0.6 -11.8 -1.1 -23.6 M338.8 399.9 q-1.9 -11.2 -3.9 -22.5 M341.0 399.9 q0.5 -10.7 0.9 -21.4 M1309.0 400.3 q0.3 -5.1 0.5 -10.2 M1311.2 400.3 q-3.5 -12.6 -7.0 -25.1 M346.1 402.9 q-0.4 -5.5 -0.8 -11.1 M348.3 402.9 q0.2 -8.1 0.4 -16.1 M350.5 402.9 q1.3 -5.3 2.7 -10.5 M327.0 403.0 q-1.3 -12.1 -2.7 -24.2 M329.2 403.0 q3.0 -8.5 6.1 -17.0 M331.4 403.0 q-0.2 -12.8 -0.4 -25.6 M291.5 402.8 q-2.1 -12.1 -4.3 -24.1 M293.7 402.8 q-1.0 -11.5 -2.0 -23.1 M295.9 402.8 q-2.3 -8.3 -4.6 -16.5 M298.1 402.8 q3.5 -11.9 6.9 -23.8 M284.9 407.2 q3.3 -12.5 6.7 -25.1 M287.1 407.2 q-1.4 -9.9 -2.7 -19.7 M1183.8 411.5 q1.5 -11.8 3.0 -23.7 M1186.0 411.5 q1.4 -5.2 2.7 -10.4 M1188.2 411.5 q-0.4 -12.4 -0.8 -24.9 M105.3 401.9 q1.3 -5.1 2.7 -10.2 M107.5 401.9 q1.5 -6.4 3.1 -12.8 M109.7 401.9 q-1.4 -8.5 -2.9 -17.0 M389.0 409.4 q0.6 -12.0 1.3 -23.9 M391.2 409.4 q-1.4 -6.1 -2.8 -12.1 M393.4 409.4 q1.2 -12.3 2.3 -24.7 M395.6 409.4 q1.0 -6.5 2.0 -13.0 M121.4 411.8 q-3.0 -12.3 -6.0 -24.5 M123.6 411.8 q-3.5 -12.2 -6.9 -24.3 M125.8 411.8 q0.3 -9.3 0.5 -18.6 M608.2 406.4 q1.8 -6.6 3.6 -13.1 M610.4 406.4 q-1.5 -6.2 -3.1 -12.4 M790.2 401.4 q-3.3 -12.9 -6.5 -25.8 M792.4 401.4 q1.8 -8.2 3.5 -16.3 M551.7 411.1 q-3.1 -4.5 -6.1 -9.1 M553.9 411.1 q2.9 -11.0 5.7 -22.0 M556.1 411.1 q-0.1 -6.9 -0.2 -13.8 M36.7 402.8 q0.1 -10.2 0.3 -20.3 M38.9 402.8 q-2.3 -12.6 -4.6 -25.1 M41.1 402.8 q-2.3 -11.0 -4.7 -22.0 M43.3 402.8 q-1.9 -9.5 -3.7 -18.9 M633.0 409.0 q-1.8 -11.1 -3.7 -22.2 M635.2 409.0 q-2.0 -8.4 -3.9 -16.8 M637.4 409.0 q-0.0 -9.2 -0.0 -18.4 M639.6 409.0 q0.7 -4.3 1.4 -8.6 M1033.5 406.4 q0.8 -6.9 1.5 -13.9 M1035.7 406.4 q2.1 -9.5 4.3 -19.0 M725.4 408.4 q2.9 -4.7 5.7 -9.3 M727.6 408.4 q0.3 -9.1 0.6 -18.2 M1145.7 402.1 q-0.5 -4.5 -1.0 -9.0 M1147.9 402.1 q2.2 -10.3 4.5 -20.5 M1068.2 409.1 q1.1 -8.5 2.1 -17.0 M1070.4 409.1 q-0.8 -8.6 -1.7 -17.2 M1072.6 409.1 q-0.0 -6.2 -0.0 -12.5 M1074.8 409.1 q0.7 -9.9 1.3 -19.9 M653.6 403.1 q-2.0 -7.3 -4.0 -14.6 M655.8 403.1 q-3.2 -12.7 -6.4 -25.5 M658.0 403.1 q1.8 -8.4 3.7 -16.8 M1429.8 400.9 q3.4 -8.7 6.8 -17.4 M1432.0 400.9 q-0.6 -4.0 -1.3 -8.1 M1434.2 400.9 q-2.9 -8.7 -5.7 -17.5 M801.9 405.1 q1.3 -12.7 2.5 -25.5 M804.1 405.1 q3.3 -10.5 6.7 -20.9 M884.2 402.8 q-1.8 -9.0 -3.6 -17.9 M886.4 402.8 q3.0 -8.2 6.1 -16.3 M521.4 403.4 q-2.4 -6.0 -4.8 -11.9 M523.6 403.4 q3.5 -9.3 6.9 -18.5 M525.8 403.4 q0.5 -10.6 0.9 -21.3 M528.0 403.4 q2.7 -12.2 5.4 -24.4 M1338.9 401.3 q-2.0 -12.4 -4.0 -24.8 M1341.1 401.3 q-3.2 -7.4 -6.3 -14.8 M1343.3 401.3 q-1.8 -7.8 -3.5 -15.5 M1148.2 409.5 q-2.0 -5.8 -4.0 -11.7 M1150.4 409.5 q-1.3 -8.2 -2.7 -16.4 M1152.6 409.5 q3.5 -8.0 6.9 -16.0 M981.6 410.2 q-0.6 -8.9 -1.1 -17.7 M983.8 410.2 q-1.6 -4.4 -3.1 -8.8 M1375.1 407.1 q-1.7 -5.6 -3.3 -11.3 M1377.3 407.1 q3.0 -7.5 5.9 -15.1 M1379.5 407.1 q-1.6 -10.4 -3.2 -20.9 M1381.7 407.1 q-2.4 -7.2 -4.9 -14.5 M1357.5 403.7 q2.8 -10.5 5.7 -21.0 M1359.7 403.7 q-1.2 -4.2 -2.5 -8.4 M551.2 400.1 q1.9 -6.9 3.8 -13.9 M553.4 400.1 q-3.1 -8.7 -6.2 -17.3 M555.6 400.1 q-1.8 -7.5 -3.7 -15.1 M49.6 401.0 q-2.0 -5.1 -4.1 -10.3 M51.8 401.0 q-0.1 -7.7 -0.3 -15.4 M54.0 401.0 q0.1 -10.2 0.2 -20.5 M56.2 401.0 q-1.3 -8.9 -2.6 -17.9 M649.5 403.9 q0.2 -11.5 0.5 -23.0 M651.7 403.9 q-2.5 -8.0 -5.1 -16.1 M744.6 403.6 q-1.1 -6.6 -2.2 -13.3 M746.8 403.6 q-3.2 -5.9 -6.4 -11.9 M25.8 407.2 q1.8 -4.1 3.7 -8.2 M28.0 407.2 q1.1 -10.7 2.2 -21.4 M30.2 407.2 q2.5 -4.6 4.9 -9.2 M32.4 407.2 q-1.0 -9.0 -2.1 -18.0 M168.3 409.1 q0.9 -6.1 1.9 -12.2 M170.5 409.1 q-0.5 -4.8 -1.0 -9.6 M172.7 409.1 q-3.1 -7.5 -6.2 -15.1 M549.7 403.3 q-1.9 -10.3 -3.9 -20.7 M551.9 403.3 q-2.1 -12.3 -4.2 -24.7 M554.1 403.3 q-1.0 -10.9 -2.1 -21.8 M1030.0 405.8 q-0.5 -7.1 -1.1 -14.2 M1032.2 405.8 q0.6 -5.4 1.2 -10.7 M1034.4 405.8 q0.4 -10.3 0.7 -20.6 M1036.6 405.8 q-3.3 -10.3 -6.7 -20.6 M561.4 403.7 q-1.6 -12.2 -3.2 -24.4 M563.6 403.7 q2.4 -7.4 4.9 -14.8 M428.0 408.3 q-3.3 -4.7 -6.5 -9.3 M430.2 408.3 q-0.9 -6.9 -1.8 -13.8 M432.4 408.3 q2.2 -6.7 4.4 -13.4 M1285.1 407.4 q3.2 -9.5 6.4 -19.1 M1287.3 407.4 q0.5 -7.3 1.1 -14.5 M1289.5 407.4 q1.9 -12.5 3.8 -25.0 M905.9 407.1 q-3.1 -9.5 -6.1 -19.0 M908.1 407.1 q-0.3 -4.6 -0.5 -9.2 M910.3 407.1 q3.3 -8.0 6.5 -16.1 M552.1 409.4 q-1.3 -8.6 -2.7 -17.1 M554.3 409.4 q3.3 -7.2 6.7 -14.5 M556.5 409.4 q-2.2 -5.3 -4.3 -10.7 M558.7 409.4 q1.3 -6.1 2.5 -12.1 M332.4 399.0 q-3.5 -12.8 -7.0 -25.6 M334.6 399.0 q2.4 -8.9 4.9 -17.8 M336.8 399.0 q-2.9 -10.9 -5.9 -21.8 M339.0 399.0 q2.7 -11.4 5.4 -22.8 M999.0 409.4 q2.7 -7.1 5.4 -14.2 M1001.2 409.4 q1.5 -6.8 3.0 -13.6 M1003.4 409.4 q1.3 -10.3 2.6 -20.5 M1397.3 409.7 q1.3 -7.0 2.6 -14.0 M1399.5 409.7 q-1.4 -11.2 -2.9 -22.5 M595.6 403.8 q-1.8 -8.8 -3.7 -17.6 M597.8 403.8 q-1.2 -6.2 -2.5 -12.5 M600.0 403.8 q0.1 -5.6 0.2 -11.2 M602.2 403.8 q-3.1 -5.1 -6.1 -10.3 M90.3 400.3 q2.4 -6.8 4.9 -13.6 M92.5 400.3 q1.3 -8.6 2.5 -17.2 M94.7 400.3 q0.9 -4.4 1.7 -8.7 M96.9 400.3 q-0.1 -7.7 -0.3 -15.4 M493.2 404.2 q-0.8 -11.2 -1.5 -22.3 M495.4 404.2 q-1.7 -10.4 -3.5 -20.9 M497.6 404.2 q-1.2 -10.4 -2.4 -20.9 M499.8 404.2 q1.8 -7.0 3.6 -14.0 M1220.4 409.8 q1.0 -12.9 2.0 -25.7 M1222.6 409.8 q1.7 -5.1 3.4 -10.3 M1224.8 409.8 q-2.4 -6.4 -4.7 -12.8 M1227.0 409.8 q0.8 -5.8 1.7 -11.6 M416.3 407.5 q1.4 -8.2 2.7 -16.5 M418.5 407.5 q3.0 -11.1 6.0 -22.2 M381.3 402.5 q-0.7 -9.7 -1.4 -19.4 M383.5 402.5 q3.4 -12.4 6.8 -24.8 M385.7 402.5 q1.5 -4.4 3.0 -8.9 M162.9 399.6 q0.3 -7.2 0.5 -14.4 M165.1 399.6 q-0.7 -11.2 -1.3 -22.4 M167.3 399.6 q2.3 -12.1 4.7 -24.3 M1239.1 401.2 q2.1 -6.8 4.2 -13.6 M1241.3 401.2 q-1.5 -11.5 -3.0 -23.1 M561.9 407.0 q-0.8 -12.8 -1.5 -25.7 M564.1 407.0 q0.3 -10.2 0.6 -20.5 M1158.2 400.9 q0.4 -11.5 0.8 -23.0 M1160.4 400.9 q2.7 -12.1 5.3 -24.1 M621.6 401.0 q0.5 -6.4 1.0 -12.9 M623.8 401.0 q-0.7 -6.5 -1.4 -12.9 M460.3 400.1 q-1.7 -7.3 -3.4 -14.6 M462.5 400.1 q-3.0 -4.5 -6.1 -8.9 M1293.3 403.0 q-1.1 -4.0 -2.3 -8.1 M1295.5 403.0 q2.0 -5.3 4.0 -10.5 M1437.8 404.3 q2.1 -7.7 4.3 -15.5 M1440.0 404.3 q-3.1 -7.6 -6.2 -15.1 M793.8 407.5 q-2.2 -6.3 -4.4 -12.5 M796.0 407.5 q-1.8 -6.6 -3.5 -13.2 M798.2 407.5 q0.5 -11.2 1.0 -22.5 M800.4 407.5 q-3.2 -12.5 -6.3 -24.9 M1241.6 411.3 q-3.0 -5.1 -6.0 -10.1 M1243.8 411.3 q1.8 -7.2 3.5 -14.5 M1246.0 411.3 q0.1 -6.8 0.2 -13.6 M1248.2 411.3 q-2.0 -4.1 -4.1 -8.2 M1390.5 399.1 q-1.8 -6.4 -3.6 -12.8 M1392.7 399.1 q-0.0 -12.3 -0.1 -24.6 M1394.9 399.1 q0.2 -6.8 0.4 -13.5 M1397.1 399.1 q2.1 -10.0 4.2 -20.0 M1111.2 411.2 q1.4 -7.6 2.9 -15.2 M1113.4 411.2 q2.9 -6.3 5.7 -12.5 M1115.6 411.2 q0.5 -4.2 1.1 -8.4 M321.8 404.0 q-1.6 -8.6 -3.1 -17.1 M324.0 404.0 q0.9 -12.9 1.8 -25.9 M326.2 404.0 q-1.3 -8.0 -2.6 -16.1 M87.3 407.5 q-1.2 -4.8 -2.3 -9.7 M89.5 407.5 q-2.0 -10.7 -4.0 -21.3 M91.7 407.5 q0.3 -10.7 0.6 -21.4 M93.9 407.5 q-2.3 -10.1 -4.5 -20.2 M144.5 400.9 q-3.3 -5.6 -6.7 -11.3 M146.7 400.9 q-3.1 -7.6 -6.3 -15.2 M148.9 400.9 q3.2 -4.9 6.3 -9.7 M1216.2 408.9 q-1.3 -11.9 -2.5 -23.8 M1218.4 408.9 q-2.7 -10.8 -5.5 -21.6 M1431.8 404.6 q2.0 -8.5 3.9 -17.0 M1434.0 404.6 q2.2 -12.0 4.4 -24.0 M92.1 404.1 q1.9 -11.9 3.9 -23.9 M94.3 404.1 q-3.4 -8.7 -6.9 -17.5 M96.5 404.1 q1.1 -10.6 2.3 -21.1 M1320.1 399.7 q2.7 -9.5 5.4 -19.1 M1322.3 399.7 q0.9 -11.7 1.8 -23.4 M1324.5 399.7 q0.5 -8.5 0.9 -17.1 M1326.7 399.7 q2.4 -5.0 4.7 -10.1 M997.2 404.9 q2.4 -8.2 4.7 -16.4 M999.4 404.9 q-0.9 -8.5 -1.7 -17.0 M1001.6 404.9 q-3.2 -8.9 -6.4 -17.7 M1003.8 404.9 q0.2 -12.3 0.4 -24.6 M649.4 402.7 q3.0 -9.4 6.0 -18.7 M651.6 402.7 q-0.2 -5.4 -0.4 -10.7 M1439.6 408.6 q-0.2 -5.7 -0.4 -11.4 M1441.8 408.6 q-3.1 -9.0 -6.3 -17.9 M1444.0 408.6 q1.8 -12.7 3.5 -25.4 M1300.1 400.4 q1.0 -11.6 2.1 -23.1 M1302.3 400.4 q2.3 -12.4 4.6 -24.9 M1154.6 405.7 q2.6 -4.6 5.2 -9.2 M1156.8 405.7 q-1.7 -10.4 -3.5 -20.8 M1159.0 405.7 q-0.3 -11.3 -0.6 -22.5 M773.0 410.3 q3.2 -8.4 6.5 -16.8 M775.2 410.3 q-2.7 -6.1 -5.5 -12.3 M633.1 408.8 q-0.0 -4.6 -0.0 -9.3 M635.3 408.8 q2.6 -4.5 5.2 -9.0 M1410.2 399.9 q-2.3 -11.3 -4.5 -22.6 M1412.4 399.9 q3.0 -7.0 6.0 -14.0 M1384.7 401.9 q-2.2 -5.1 -4.5 -10.1 M1386.9 401.9 q2.4 -7.5 4.9 -15.0 M1389.1 401.9 q2.8 -9.6 5.6 -19.1 M95.0 411.8 q-1.3 -8.8 -2.6 -17.6 M97.2 411.8 q3.3 -12.6 6.6 -25.2 M807.6 411.9 q-1.1 -4.1 -2.2 -8.3 M809.8 411.9 q0.9 -6.8 1.8 -13.7 M812.0 411.9 q0.7 -6.5 1.4 -13.0 M1004.5 401.3 q0.6 -5.5 1.1 -11.1 M1006.7 401.3 q-1.6 -4.4 -3.1 -8.7 M367.5 403.5 q-2.1 -7.2 -4.3 -14.4 M369.7 403.5 q1.3 -13.0 2.7 -25.9 M371.9 403.5 q-1.0 -10.6 -2.0 -21.3 M374.1 403.5 q-0.6 -6.8 -1.3 -13.6 M203.6 407.2 q0.8 -7.4 1.6 -14.7 M205.8 407.2 q-2.6 -6.5 -5.1 -13.0 M208.0 407.2 q-2.8 -5.1 -5.7 -10.2 M740.2 404.4 q-1.5 -9.2 -3.0 -18.4 M742.4 404.4 q-1.5 -11.9 -3.0 -23.7 M744.6 404.4 q1.2 -11.7 2.5 -23.4 M654.2 411.1 q-0.6 -5.8 -1.2 -11.6 M656.4 411.1 q1.0 -6.0 2.0 -12.0 M658.6 411.1 q-1.2 -7.3 -2.3 -14.6 M843.1 407.6 q1.4 -6.6 2.7 -13.3 M845.3 407.6 q-1.8 -10.0 -3.6 -20.1 M847.5 407.6 q-2.6 -7.7 -5.1 -15.4 M1297.2 402.3 q-2.8 -6.5 -5.6 -13.0 M1299.4 402.3 q1.9 -11.9 3.8 -23.8 M1301.6 402.3 q1.1 -4.9 2.2 -9.9 M651.6 401.7 q-3.3 -4.1 -6.6 -8.3 M653.8 401.7 q1.4 -9.3 2.8 -18.6 M656.0 401.7 q2.2 -12.9 4.4 -25.8 M1264.8 407.7 q-1.0 -8.2 -1.9 -16.4 M1267.0 407.7 q-1.3 -8.2 -2.6 -16.4 M969.5 406.9 q3.4 -12.8 6.9 -25.6 M971.7 406.9 q2.3 -7.6 4.6 -15.1 M938.9 408.1 q-0.3 -4.6 -0.5 -9.2 M941.1 408.1 q1.1 -7.6 2.2 -15.2 M308.4 411.9 q2.3 -8.5 4.6 -17.0 M310.6 411.9 q-2.8 -8.6 -5.7 -17.3 M1150.2 399.0 q2.0 -10.3 4.0 -20.5 M1152.4 399.0 q1.1 -12.2 2.3 -24.3 M1154.6 399.0 q-0.2 -12.7 -0.4 -25.5 M1156.8 399.0 q-0.5 -12.0 -0.9 -23.9 M217.5 403.8 q2.8 -12.5 5.5 -25.0 M219.7 403.8 q-1.0 -4.2 -2.1 -8.4 M221.9 403.8 q0.2 -8.8 0.5 -17.6 M152.4 409.3 q0.4 -13.0 0.9 -26.0 M154.6 409.3 q-1.8 -4.6 -3.7 -9.2 M156.8 409.3 q0.1 -10.0 0.1 -19.9 M440.4 403.6 q-0.6 -6.2 -1.2 -12.4 M442.6 403.6 q-2.0 -4.5 -4.0 -9.0 M649.5 406.3 q2.8 -5.2 5.6 -10.5 M651.7 406.3 q0.0 -11.3 0.1 -22.6 M653.9 406.3 q0.5 -5.3 0.9 -10.6 M243.5 407.0 q-0.6 -12.7 -1.2 -25.3 M245.7 407.0 q-2.4 -4.1 -4.8 -8.2 M247.9 407.0 q1.6 -11.4 3.3 -22.7 M250.1 407.0 q-2.4 -10.4 -4.8 -20.8 M765.4 399.4 q2.9 -8.4 5.8 -16.9 M767.6 399.4 q1.8 -8.9 3.7 -17.8"/>
+        </g>
+      </g>
+    </svg>
+    <svg class="tall" viewBox="0 0 400 270" preserveAspectRatio="xMidYMax meet" focusable="false">
+      <g filter="url(#pen)">
+        <g stroke="#2b2622" stroke-width="1.6" fill="none">
+          <path d="M150 196 C190 194 230 198 262 195"/><path d="M150 224 C190 222 230 226 262 223"/>
+        </g>
+        <use href="#post" x="160" y="168" width="15" height="82"/><use href="#post" x="212" y="168" width="15" height="82"/><use href="#post" x="252" y="168" width="15" height="82"/>
+        <ellipse cx="100" cy="242" rx="104" ry="9" fill="url(#h2)" stroke="none" opacity=".75"/>
+        <ellipse cx="300" cy="244" rx="80" ry="7" fill="url(#h2)" stroke="none" opacity=".75"/>
+        <use href="#hen" x="-8" y="44" width="218" height="204"/>
+        <use href="#fox" x="190" y="86" width="218" height="164"/>
+        <g stroke="#2b2622" stroke-width="1.1" fill="none" stroke-linecap="round">
+          <path d="M-10 246 C80 240 200 252 410 244" stroke-width="1.5"/>
+          <path d="M313.5 258.1 q-1.7 -2.9 -3.3 -5.8 M315.7 258.1 q2.9 -3.1 5.9 -6.1 M317.9 258.1 q-0.1 -4.1 -0.2 -8.3 M263.5 264.5 q0.0 -5.3 0.0 -10.7 M265.7 264.5 q-0.7 -7.0 -1.5 -14.0 M117.3 262.6 q-2.9 -3.6 -5.8 -7.2 M119.5 262.6 q-0.8 -6.5 -1.6 -12.9 M121.7 262.6 q-1.2 -5.7 -2.3 -11.5 M42.1 257.0 q0.2 -2.8 0.4 -5.6 M44.3 257.0 q-0.7 -5.2 -1.4 -10.5 M46.5 257.0 q-2.8 -3.6 -5.6 -7.2 M48.7 257.0 q-1.3 -4.4 -2.6 -8.7 M193.4 256.0 q1.6 -5.1 3.3 -10.3 M195.6 256.0 q0.7 -4.4 1.3 -8.7 M197.8 256.0 q1.3 -3.0 2.6 -6.0 M200.0 256.0 q-1.8 -4.3 -3.6 -8.6 M390.9 262.0 q1.8 -3.5 3.7 -7.1 M393.1 262.0 q-2.2 -2.8 -4.4 -5.6 M395.3 262.0 q1.8 -3.1 3.6 -6.2 M136.0 264.1 q-1.6 -3.8 -3.2 -7.5 M138.2 264.1 q-0.5 -6.5 -1.0 -13.0 M348.3 258.2 q-2.8 -5.4 -5.6 -10.7 M350.5 258.2 q-1.9 -4.5 -3.8 -9.0 M352.7 258.2 q-3.3 -3.8 -6.5 -7.5 M55.5 255.0 q-3.1 -5.7 -6.2 -11.4 M57.7 255.0 q-3.2 -6.3 -6.3 -12.6 M59.9 255.0 q0.4 -5.6 0.7 -11.2 M376.1 261.3 q1.3 -5.6 2.6 -11.2 M378.3 261.3 q0.3 -3.6 0.7 -7.1 M333.4 259.2 q3.4 -5.9 6.8 -11.8 M335.6 259.2 q-3.0 -7.1 -6.0 -14.2 M337.8 259.2 q-0.4 -6.4 -0.8 -12.8 M303.6 257.9 q2.1 -5.9 4.2 -11.8 M305.8 257.9 q2.8 -4.7 5.6 -9.5 M308.0 257.9 q2.3 -6.1 4.7 -12.3 M388.1 257.6 q1.4 -6.1 2.8 -12.1 M390.3 257.6 q1.3 -4.5 2.7 -9.0 M392.5 257.6 q-2.7 -5.8 -5.4 -11.5 M394.7 257.6 q-2.8 -6.8 -5.6 -13.7 M127.5 254.8 q-1.6 -3.3 -3.2 -6.6 M129.7 254.8 q2.8 -4.5 5.6 -9.1 M377.4 255.6 q-0.0 -7.1 -0.1 -14.3 M379.6 255.6 q-0.8 -5.9 -1.6 -11.9 M381.8 255.6 q-2.8 -6.4 -5.5 -12.8 M384.0 255.6 q-2.3 -6.2 -4.7 -12.4 M235.4 255.6 q1.1 -6.6 2.1 -13.2 M237.6 255.6 q2.1 -4.4 4.2 -8.8 M239.8 255.6 q-0.3 -5.9 -0.7 -11.8 M236.6 259.0 q1.4 -3.2 2.9 -6.5 M238.8 259.0 q-2.9 -4.5 -5.7 -9.0 M241.0 259.0 q0.9 -4.9 1.9 -9.9 M243.2 259.0 q-0.6 -4.3 -1.2 -8.5 M12.6 265.0 q1.5 -4.4 3.0 -8.8 M14.8 265.0 q0.8 -4.7 1.6 -9.3 M17.0 265.0 q3.3 -5.3 6.7 -10.6 M368.8 258.9 q-2.2 -3.1 -4.4 -6.2 M371.0 258.9 q1.3 -5.6 2.5 -11.2 M373.2 258.9 q-2.4 -5.0 -4.9 -10.0 M403.3 257.6 q-1.2 -5.3 -2.3 -10.5 M405.5 257.6 q3.2 -3.3 6.3 -6.5 M309.1 263.5 q-2.4 -3.7 -4.8 -7.5 M311.3 263.5 q2.5 -7.4 5.1 -14.9 M297.9 257.5 q0.6 -6.3 1.2 -12.6 M300.1 257.5 q3.0 -7.0 5.9 -14.0 M278.0 257.7 q0.8 -6.5 1.5 -13.1 M280.2 257.7 q3.4 -6.7 6.7 -13.3 M282.4 257.7 q-1.0 -3.1 -2.0 -6.1 M284.6 257.7 q2.7 -3.4 5.5 -6.7 M269.1 256.7 q-0.1 -3.2 -0.2 -6.3 M271.3 256.7 q-1.5 -3.9 -3.0 -7.7 M273.5 256.7 q0.1 -3.9 0.1 -7.8 M275.7 256.7 q-2.4 -6.9 -4.8 -13.7 M348.2 264.1 q2.1 -2.9 4.2 -5.9 M350.4 264.1 q1.8 -3.3 3.5 -6.6 M352.6 264.1 q0.6 -6.0 1.2 -12.0 M354.8 264.1 q-1.4 -5.7 -2.7 -11.4 M170.0 263.1 q-1.9 -6.4 -3.7 -12.9 M172.2 263.1 q-0.9 -4.8 -1.8 -9.5 M174.4 263.1 q3.1 -6.1 6.2 -12.3 M176.6 263.1 q0.5 -5.0 0.9 -10.1 M137.7 256.0 q3.1 -3.1 6.2 -6.1 M139.9 256.0 q-3.0 -5.8 -6.0 -11.6 M142.1 256.0 q-2.8 -7.0 -5.6 -14.0 M144.3 256.0 q-2.7 -5.3 -5.3 -10.7 M401.4 257.0 q1.2 -2.8 2.3 -5.6 M403.6 257.0 q-3.3 -2.8 -6.6 -5.7 M229.2 265.8 q3.3 -7.4 6.6 -14.7 M231.4 265.8 q0.3 -7.1 0.6 -14.2 M233.6 265.8 q1.3 -4.7 2.5 -9.4 M235.8 265.8 q1.4 -2.9 2.7 -5.9 M246.4 265.0 q-2.5 -3.0 -5.0 -6.0 M248.6 265.0 q1.4 -3.5 2.7 -6.9 M250.8 265.0 q3.1 -2.6 6.2 -5.3 M253.0 265.0 q-2.9 -7.0 -5.8 -14.0 M364.6 256.3 q3.1 -6.0 6.1 -12.0 M366.8 256.3 q3.1 -7.4 6.3 -14.8 M375.2 264.2 q2.1 -5.5 4.1 -11.1 M377.4 264.2 q0.5 -7.5 1.0 -15.0 M364.1 257.1 q0.1 -2.9 0.3 -5.9 M366.3 257.1 q-3.3 -7.3 -6.6 -14.6 M40.0 264.3 q-2.5 -4.6 -4.9 -9.1 M42.2 264.3 q0.7 -3.4 1.5 -6.9 M342.8 263.0 q-3.5 -6.5 -7.0 -13.1 M345.0 263.0 q2.1 -2.8 4.1 -5.7 M347.2 263.0 q2.3 -7.4 4.7 -14.8 M349.4 263.0 q-1.2 -4.5 -2.3 -9.1 M136.9 253.2 q0.6 -3.8 1.2 -7.6 M139.1 253.2 q-1.2 -5.1 -2.3 -10.3 M272.1 258.9 q-0.6 -7.2 -1.2 -14.3 M274.3 258.9 q-2.0 -3.5 -4.0 -7.0 M180.0 255.9 q1.2 -3.4 2.5 -6.8 M182.2 255.9 q0.7 -5.6 1.3 -11.1 M184.4 255.9 q0.5 -5.4 1.0 -10.7 M3.2 257.0 q-1.2 -4.0 -2.4 -8.0 M5.4 257.0 q1.2 -6.1 2.4 -12.3 M319.6 260.0 q0.0 -5.9 0.1 -11.8 M321.8 260.0 q-3.2 -4.7 -6.4 -9.4 M223.5 254.8 q2.9 -4.3 5.8 -8.6 M225.7 254.8 q-0.8 -7.5 -1.6 -14.9 M227.9 254.8 q2.0 -3.2 4.1 -6.4 M230.1 254.8 q-1.1 -6.4 -2.3 -12.8 M319.7 257.9 q3.1 -5.3 6.2 -10.6 M321.9 257.9 q3.3 -2.8 6.6 -5.7 M324.1 257.9 q-3.1 -7.1 -6.3 -14.1 M7.6 265.4 q-2.5 -7.1 -5.0 -14.1 M9.8 265.4 q2.6 -3.5 5.3 -7.1 M12.0 265.4 q3.0 -7.3 6.0 -14.6 M134.9 265.1 q-1.3 -6.5 -2.5 -13.0 M137.1 265.1 q-1.8 -2.7 -3.7 -5.4 M283.1 256.1 q1.2 -6.9 2.4 -13.9 M285.3 256.1 q1.6 -4.3 3.2 -8.7 M287.5 256.1 q-2.5 -7.1 -4.9 -14.2 M289.7 256.1 q3.4 -6.9 6.8 -13.7 M292.9 261.8 q-2.2 -4.0 -4.4 -8.1 M295.1 261.8 q0.2 -3.1 0.4 -6.2 M216.6 260.4 q-2.9 -3.8 -5.7 -7.6 M218.8 260.4 q-3.4 -5.8 -6.8 -11.5 M221.0 260.4 q3.3 -7.1 6.7 -14.2 M223.2 260.4 q1.2 -7.2 2.5 -14.3 M70.6 265.5 q-1.4 -5.3 -2.9 -10.7 M72.8 265.5 q3.3 -6.5 6.6 -12.9 M75.0 265.5 q0.7 -4.8 1.4 -9.6 M77.2 265.5 q-0.2 -6.7 -0.5 -13.5 M72.6 265.3 q1.8 -2.6 3.7 -5.2 M74.8 265.3 q-3.1 -4.5 -6.3 -9.0 M77.0 265.3 q-2.3 -3.3 -4.6 -6.6 M79.2 265.3 q-2.0 -6.2 -4.0 -12.4 M2.1 255.9 q-3.1 -5.6 -6.1 -11.1 M4.3 255.9 q-1.1 -2.6 -2.2 -5.2 M6.5 255.9 q3.3 -3.3 6.6 -6.7 M132.7 264.0 q-0.2 -4.3 -0.4 -8.7 M134.9 264.0 q-1.3 -5.6 -2.6 -11.2 M137.1 264.0 q2.7 -4.3 5.4 -8.6 M139.3 264.0 q-0.6 -5.4 -1.2 -10.8 M216.5 259.0 q-0.1 -7.2 -0.1 -14.5 M218.7 259.0 q0.9 -5.9 1.7 -11.8 M220.9 259.0 q1.1 -7.0 2.2 -13.9 M187.0 260.3 q3.0 -6.3 6.1 -12.7 M189.2 260.3 q0.4 -4.1 0.8 -8.1 M191.4 260.3 q1.4 -4.5 2.8 -9.0 M134.0 261.3 q-1.1 -5.9 -2.1 -11.9 M136.2 261.3 q-0.0 -5.3 -0.0 -10.6 M138.4 261.3 q0.1 -7.1 0.2 -14.2 M140.6 261.3 q-3.5 -4.4 -7.0 -8.8 M198.6 256.5 q0.5 -6.7 1.0 -13.5 M200.8 256.5 q-1.3 -2.8 -2.5 -5.6 M203.0 256.5 q-3.1 -5.7 -6.1 -11.4 M205.2 256.5 q-3.3 -3.2 -6.6 -6.4 M215.9 253.7 q-1.9 -6.5 -3.7 -13.0 M218.1 253.7 q2.1 -6.6 4.2 -13.3 M220.3 253.7 q2.8 -3.8 5.6 -7.5 M201.6 258.5 q-3.0 -2.8 -6.0 -5.6 M203.8 258.5 q-2.4 -6.8 -4.9 -13.6 M206.0 258.5 q1.2 -4.1 2.3 -8.2 M208.2 258.5 q3.0 -5.0 6.0 -10.0 M260.4 262.0 q3.4 -6.5 6.7 -13.0 M262.6 262.0 q1.3 -7.1 2.6 -14.2 M264.8 262.0 q1.5 -6.5 3.0 -13.0 M327.6 263.4 q-0.2 -3.1 -0.3 -6.2 M329.8 263.4 q-3.2 -6.1 -6.4 -12.1 M327.2 265.4 q2.0 -4.2 4.1 -8.4 M329.4 265.4 q2.9 -5.6 5.8 -11.1 M331.6 265.4 q1.0 -7.2 2.0 -14.3 M333.8 265.4 q1.2 -2.8 2.3 -5.6"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+</header>
+
+<main id="main">
+  <section class="sheet-wrap sheet-kraft" id="how" aria-labelledby="h-how">
+    <div class="sheet"><div class="shelf">
+      <h2 id="h-how">How it plays: 3 taps to learn</h2>
+
+      <figure class="print table-print">
+        <span class="pic" style="--r:-.6deg"><span class="tape l" style="--tr:-6deg"></span><span class="tape r" style="--tr:5deg"></span><span class="pic-paper">
+          <picture>
+            <source media="(max-width:700px)" srcset="assets/img/table-phone.webp 540w" sizes="286px" width="540" height="1169">
+            <img src="assets/img/table-desktop.webp" srcset="assets/img/table-desktop-640.webp 640w, assets/img/table-desktop.webp 1200w" sizes="(max-width:1040px) 92vw, 966px"
+              width="1200" height="750" decoding="async"
+              alt="The Fox &amp; Hens table mid-turn. A fox sits in your yard as a warning, your 2-egg and golden 6-egg cards are on the table with the golden egg marked NEST, and the GATHER button shows Raid 6%, Low.">
+          </picture>
+        </span></span>
+        <figcaption><span class="pic-title">a real game, mid-turn</span><span class="pic-meta">One fox in the yard, the golden egg in the nest, raid chance 6%.</span></figcaption>
+      </figure>
+
+      <ol class="steps">
+        <li><figure class="print">
+          <span class="pic" style="--r:-1.3deg"><span class="tape" style="--tr:-3deg"></span><span class="pic-paper">
+            <img src="assets/img/step-gather.webp" width="400" height="300" loading="lazy" decoding="async" alt="The deck and a freshly drawn golden egg card worth 6.">
+          </span></span>
+          <figcaption><span class="pic-title"><span class="step-no">1.</span> GATHER.</span><span class="pic-meta">Turn over a card. Eggs score points. A golden egg is worth 6.</span></figcaption>
+        </figure></li>
+        <li><figure class="print">
+          <span class="pic" style="--r:1deg"><span class="tape" style="--tr:2deg"></span><span class="pic-paper">
+            <img src="assets/img/step-yard.webp" width="400" height="300" loading="lazy" decoding="async" alt="Your yard: one fox card next to two empty prowler spaces, a hawk and a weasel outline.">
+          </span></span>
+          <figcaption><span class="pic-title"><span class="step-no">2.</span> Watch the yard.</span><span class="pic-meta">One fox is a warning. A second fox (or hawk, or weasel) of the same kind raids you, and the eggs from that round are gone.</span></figcaption>
+        </figure></li>
+        <li><figure class="print">
+          <span class="pic" style="--r:-.5deg"><span class="tape" style="--tr:-1deg"></span><span class="pic-paper">
+            <img src="assets/img/step-roost.webp" width="400" height="300" loading="lazy" decoding="async" alt="The ROOST button reading ROOST +8, under your egg cards.">
+          </span></span>
+          <figcaption><span class="pic-title"><span class="step-no">3.</span> ROOST.</span><span class="pic-meta">Lock in your eggs and sit out the round. First to 40 points wins.</span></figcaption>
+        </figure></li>
+      </ol>
+
+      <p class="teach">The first deal teaches you by playing it, and you can't lose it.</p>
+    </div></div>
+  </section>
+
+  <section class="sheet-wrap sheet-graph" id="promises" aria-labelledby="h-promises">
+    <div class="sheet"><div class="shelf">
+      <h2 id="h-promises">Four promises, and how you can check each one</h2>
+      <div class="promise-grid">
+        <dl class="promises">
+          <div>
+            <dt><svg class="check" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10 18.5 L16 24 L26.5 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>No ads. Not now, not later.</dt>
+            <dd><span class="how">How to check it yourself</span>Play a few games. You won't see one, because there's no ad code in the game. When the full game goes on sale, a single one-time unlock will be the only way the game makes money.</dd>
+          </div>
+          <div>
+            <dt><svg class="check" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10 18.5 L16 24 L26.5 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>No login, no account.</dt>
+            <dd><span class="how">How to check it yourself</span>There's no sign-up screen. Your progress is saved on your own device.</dd>
+          </div>
+          <div>
+            <dt><svg class="check" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10 18.5 L16 24 L26.5 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Works offline.</dt>
+            <dd><span class="how">How to check it yourself</span>Open it once, add it to your home screen, then switch on airplane mode. Keep playing.</dd>
+          </div>
+          <div>
+            <dt><svg class="check" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10 18.5 L16 24 L26.5 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>The odds before every draw.</dt>
+            <dd><span class="how">How to check it yourself</span>The GATHER button shows your raid chance before you draw, like "Raid 6% · Low". It counts the cards that are really left in the deck, so it's an honest number.</dd>
+          </div>
+        </dl>
+
+        <figure class="print phone-print">
+          <span class="pic" style="--r:1.4deg"><span class="tape" style="--tr:3deg"></span><span class="pic-paper">
+            <img src="assets/img/table-phone.webp" width="540" height="1169" loading="lazy" decoding="async"
+              alt="Fox &amp; Hens on a phone: rival Clem at the top, the deck in the middle, your yard with a fox, a 2-egg and the golden Nest Egg, and the buttons ROOST +8 and GATHER, Raid 6%, Low.">
+          </span></span>
+          <figcaption><span class="pic-title">on a phone</span><span class="pic-meta">No sign-up screen. Just the table.</span></figcaption>
+        </figure>
+      </div>
+
+      <aside class="nest-note" aria-labelledby="h-nest">
+        <figure class="print">
+          <span class="pic" style="--r:-2deg"><span class="tape" style="--tr:-4deg;width:70px"></span><span class="pic-paper">
+            <img src="assets/img/nest-card.webp" width="262" height="352" loading="lazy" decoding="async" alt="The golden egg card worth 6, framed in straw with a NEST tab above it.">
+          </span></span>
+        </figure>
+        <div>
+          <h3 id="h-nest"><span class="gold-mark">Plus the Nest Egg.</span></h3>
+          <p>Your best egg each round sits in a straw nest. When you're raided, you keep it. A raid still stings, but your best egg stays safe. That matters a lot when a seven-year-old is the one who got raided.</p>
+        </div>
+      </aside>
+    </div></div>
+  </section>
+
+  <section class="sheet-wrap sheet-laid" id="daily" aria-labelledby="h-daily">
+    <div class="sheet"><div class="shelf">
+      <h2 id="h-daily">The Daily Deal</h2>
+      <div class="deal-grid">
+        <div class="prose">
+          <h3>Everyone gets the same deck today.</h3>
+          <p>The Daily Deal is one game a day. Every player in the world gets the same shuffle on the same date. You play it once. When you finish, the game shows you the <strong>opening deck, all 52 cards in order</strong>, so you can check that the deal wasn't stacked against you.</p>
+          <p>Share your result as a little grid of eggs and foxes. It shows how you played, not what the cards were:</p>
+        </div>
+        <figure class="ticket" aria-labelledby="ticket-cap">
+          <p class="ticket-head">Fox &amp; Hens · Daily 2026-11-12 · 41 pts · won</p>
+          <p class="grid-row" role="img" aria-label="Egg 12, fox 3, egg 9, egg 17">
+            <span><svg viewBox="0 0 20 24" aria-hidden="true"><path d="M10 2 C4 2 2 12 2 15 a8 8 0 0 0 16 0 C18 12 16 2 10 2z" fill="#f4edE0" stroke="#21201f" stroke-width="1.6"/></svg>12</span>
+            <span><svg viewBox="0 0 20 24" aria-hidden="true"><path d="M3 4 L7 10 H13 L17 4 L16 13 C15 18 12 21 10 21 C8 21 5 18 4 13 Z" fill="#d9783f" stroke="#21201f" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7.6" cy="13" r="1.2" fill="#21201f"/><circle cx="12.4" cy="13" r="1.2" fill="#21201f"/></svg>3</span>
+            <span><svg viewBox="0 0 20 24" aria-hidden="true"><path d="M10 2 C4 2 2 12 2 15 a8 8 0 0 0 16 0 C18 12 16 2 10 2z" fill="#f4edE0" stroke="#21201f" stroke-width="1.6"/></svg>9</span>
+            <span><svg viewBox="0 0 20 24" aria-hidden="true"><path d="M10 2 C4 2 2 12 2 15 a8 8 0 0 0 16 0 C18 12 16 2 10 2z" fill="#f4edE0" stroke="#21201f" stroke-width="1.6"/></svg>17</span>
+          </p>
+          <small id="ticket-cap">example grid, made-up numbers</small>
+        </figure>
+      </div>
+      <p class="deal-close">A new deal comes at midnight, your local time. Today's deal won't come back.</p>
+      <p class="deal-link"><a class="link" href="play/">Play today's deal</a></p>
+    </div></div>
+  </section>
+
+  <section class="sheet-wrap sheet-dots" id="full-game" aria-labelledby="h-soon">
+    <div class="sheet"><div class="shelf">
+      <h2 id="h-soon">Coming soon: the full game</h2>
+      <div class="soon">
+        <span class="notyet">not on sale yet</span>
+        <p>Everything above is free and stays free: unlimited games against Clem (the cautious hen) and Rosie Red (the gambler), the Daily Deal, levels 1 to 5, and big-card mode.</p>
+        <p>I'm building a <strong>Full Game</strong>: two more rivals (Barnaby the rooster and Old Mo the goose), pass-and-play for up to 6 people on one phone, and levels beyond 5. The planned price is a one-time $4.99. <strong>It isn't on sale yet.</strong> If you tap Unlock in the game, it tells you so. You pay nothing today.</p>
+        <p>Tap it if you'd want the full game. For now the button just says thanks.</p>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="sheet-wrap sheet-ruled" id="faq" aria-labelledby="h-faq">
+    <div class="sheet"><div class="shelf">
+      <h2 id="h-faq">FAQ</h2>
+      <div class="faq">
+        <details><summary>Is it really free?</summary><p>Yes. There's no trial and no timer. The free games never run out.</p></details>
+        <details><summary>Do I need to make an account?</summary><p>No. Open the link and you're playing.</p></details>
+        <details><summary>Can the family play on one phone?</summary><p>Yes. Pass-and-play is in this test build for up to 4 players.</p></details>
+        <details><summary>Does it work without internet?</summary><p>Yes, once it has loaded once. Add it to your home screen, then try it in airplane mode.</p></details>
+        <details><summary>Is the shuffle fair?</summary><p>Every draw comes from a real 52-card deck, and the raid chance counts what's actually left. After the Daily Deal you can see the opening deck, all 52 cards in order, for yourself.</p></details>
+      </div>
+
+      <section class="feedback-note" id="feedback" aria-labelledby="h-feedback">
+        <h2 id="h-feedback">Tell me what you think</h2>
+        <p>Leave a comment on my itch.io page: [ITCH_URL]</p>
+      </section>
+    </div></div>
+  </section>
+</main>
+
+<footer class="sheet-wrap sheet-navy">
+  <div class="sheet"><div class="colophon"><div class="colophon-inner">
+    <p class="sign">Fox &amp; Hens</p>
+    <p>Fox &amp; Hens is an original game made by a one-person studio in Canada.</p>
+    <p>This is a test build, so things may change. <a class="link" href="#feedback">Tell me what broke</a>.</p>
+    <p>No ads · No login · Plays offline once loaded</p>
+    <a class="button" href="play/"><span class="tag"><span class="stamp" aria-hidden="true"><svg viewBox="0 0 12 14"><path d="M1 1 L11 7 L1 13 Z" fill="#fbf6ea"/></svg></span>Play free in your browser</span></a>
+  </div></div></div>
+</footer>
+</body>
+</html>

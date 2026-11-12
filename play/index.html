@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/fox-and-hens/play/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Fox & Hens: gather eggs, roost before the second prowler. A farmyard push-your-luck card game that plays offline.">
+  <meta name="theme-color" content="#933323">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Fox &amp; Hens">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="manifest" href="manifest.json">
+  <title>Fox &amp; Hens</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #D2B48C; }
+    #splash { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; background: #F4EDE0; color: #21201F; font: 600 20px Georgia, serif;
+      transition: opacity .2s ease-out; }
+    #splash svg { width: 120px; height: 120px; }
+    #splash .word { margin-top: 12px; font-size: 32px; letter-spacing: .02em; }
+    #splash .wait { margin-top: 8px; font: 400 15px system-ui, sans-serif; opacity: 0; transition: opacity .3s; }
+    #splash.slow .wait { opacity: 1; }
+    @media (prefers-color-scheme: dark) { #splash { background: #1E2230; color: #F4EDE0; } }
+  </style>
+  <script>
+    // Install-to-home-screen bridge used by the app (lib/services/pwa_web.dart).
+    var fhDeferred = null;
+    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); fhDeferred = e; });
+    window.fhIsStandalone = function () {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    };
+    window.fhCanPrompt = function () { return fhDeferred !== null; };
+    window.fhIsIos = function () { return /iphone|ipad|ipod/i.test(navigator.userAgent); };
+    window.fhPrompt = function () {
+      if (!fhDeferred) return Promise.resolve('unavailable');
+      var e = fhDeferred; fhDeferred = null; e.prompt();
+      return e.userChoice.then(function (c) { return c.outcome; });
+    };
+  </script>
+</head>
+<body>
+  <div id="splash" role="img" aria-label="Fox and Hens is loading">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <polygon points="22,30 38,8 48,34" fill="#D9783F" stroke="#21201F" stroke-width="3" stroke-linejoin="round"/>
+      <polygon points="98,30 82,8 72,34" fill="#D9783F" stroke="#21201F" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="60" cy="64" r="44" fill="#D2B48C" stroke="#21201F" stroke-width="3"/>
+      <ellipse cx="60" cy="58" rx="16" ry="21" fill="#FBF8F1" stroke="#21201F" stroke-width="3"/>
+      <path d="M30 82 Q60 98 90 82" fill="none" stroke="#B8913F" stroke-width="5" stroke-linecap="round"/>
+      <path d="M33 90 Q60 104 87 90" fill="none" stroke="#B8913F" stroke-width="5" stroke-linecap="round"/>
+    </svg>
+    <div class="word">Fox &amp; Hens</div>
+    <div class="wait">Warming the henhouse...</div>
+  </div>
+  <script>
+    setTimeout(function () { var s = document.getElementById('splash'); if (s) s.classList.add('slow'); }, 1500);
+    window.addEventListener('flutter-first-frame', function () {
+      var s = document.getElementById('splash');
+      if (!s) return;
+      s.style.opacity = '0';
+      setTimeout(function () { s.remove(); }, 250);
+    });
+    // Offline: our own service worker (Flutter's built-in one is deprecated).
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').then(function (reg) {
+          // Hand the worker every file this page already loaded, so the
+          // first visit is enough to play offline.
+          navigator.serviceWorker.ready.then(function (r) {
+            var urls = performance.getEntriesByType('resource').map(function (e) { return e.name; })
+              .filter(function (u) { return u.indexOf(location.origin) === 0; });
+            urls.push(location.href);
+            if (r.active) r.active.postMessage({ type: 'cache-urls', urls: urls });
+          });
+        }).catch(function () {});
+      });
+    }
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
